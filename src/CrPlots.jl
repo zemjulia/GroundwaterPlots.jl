@@ -73,14 +73,14 @@ function dogetwelllocation(well)
 	return x, y
 end
 
-const getwelllocation = ReusableFunctions.maker3function(dogetwelllocation, joinpath(dirname(@__FILE__), "../data/wells"))
-
 function getticks(plotdata)
 	upperlimit = maximum(plotdata)
 	lowerlimit = minimum(plotdata)
 	ticks = map(x->round(x, 1), linspace(lowerlimit, upperlimit, 5))
 	return ticks
 end
+
+const getwelllocation = ReusableFunctions.maker3function(dogetwelllocation, joinpath(dirname(@__FILE__), "../data/wells"))
 
 function resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
