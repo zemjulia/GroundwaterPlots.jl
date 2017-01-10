@@ -37,6 +37,16 @@ function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsety=60, mete
 	end
 end
 
+function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pbar_width=0.2, pbar_height=0.04, fontsize=24)
+	pbar_ax = fig[:add_axes]([pbar_x0, pbar_y0, pbar_width, pbar_height])
+	pbar_ax[:axis]("off")
+	bgrect = PyPlot.matplotlib[:patches][:Rectangle]((0, 0), 1, 1, facecolor="k", edgecolor="none", alpha=0.4)
+	fgrect = PyPlot.matplotlib[:patches][:Rectangle]((0, 0), completeness, 1, facecolor="k", edgecolor="none", alpha=0.7)
+	pbar_ax[:add_patch](bgrect)
+	pbar_ax[:add_patch](fgrect)
+	pbar_ax[:text](0, -.8, text, fontsize=fontsize, weight="bold")
+end
+
 function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14)
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
@@ -78,7 +88,7 @@ function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false,
 	img = ax[:imshow](bgimg, extent=[bgx0, bgx1, bgy0, bgy1], alpha=1.)
 	upperlimit = upperlimit == false ? maximum(gridcr) : upperlimit
 	lowerlimit = lowerlimit == false ? minimum(gridcr) : lowerlimit
-	img = ax[:imshow](map(x->x < lowerlimit ? NaN : (x > upperlimit ? NaN : x), gridcr'), origin="lower", extent=[x0, x1, y0, y1], cmap=cmap, interpolation="nearest", alpha=0.7, vmin=lowerlimit, vmax=upperlimit)
+	img = ax[:imshow](map(x->x < lowerlimit ? NaN : (x > upperlimit ? upperlimit : x), gridcr'), origin="lower", extent=[x0, x1, y0, y1], cmap=cmap, interpolation="nearest", alpha=0.7, vmin=lowerlimit, vmax=upperlimit)
 	ax[:axis]("off")
 	ax[:set_xlim](x0, x1)
 	ax[:set_ylim](y0, y1)
@@ -110,7 +120,7 @@ function resizeboundingbox(boundingbox)
 	if 9 * width > 16 * height
 		height = round(Int, 9 * width / 16)
 	elseif 9 * width < 16 * height
-		weight = round(Int, 16 * height / 9)
+		width = round(Int, 16 * height / 9)
 	end
 	x0 = centerx - .5 * width
 	x1 = centerx + .5 * width
