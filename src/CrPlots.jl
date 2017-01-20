@@ -47,6 +47,12 @@ function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pb
 	pbar_ax[:text](0, -.8, text, fontsize=fontsize, weight="bold")
 end
 
+function addpoints(ax, points; colorstring="k.", markersize=20)
+	for i = 1:size(points, 2)
+		ax[:plot](points[1, i], points[2, i], colorstring, markersize=markersize)
+	end
+end
+
 function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14)
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
@@ -66,19 +72,19 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimi
 	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap)
 end
 
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
 	numygridpoints=1080
 	gridxs = [x for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
-	gridzs = Kriging.krige(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', plotdata, h->Kriging.expcov(h, 100, 250.))
+	gridzs = map(posttransform, Kriging.krige(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), h->Kriging.expcov(h, 100, 250.)))
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap)
 end
 
-function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow)
+function crplot(boundingbox)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	fig, ax = PyPlot.subplots()
@@ -86,12 +92,19 @@ function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false,
 	ax = fig[:add_axes]([0, 0, 1, 1], frameon=false)
 	fig[:set_size_inches](16, 9)
 	img = ax[:imshow](bgimg, extent=[bgx0, bgx1, bgy0, bgy1], alpha=1.)
-	upperlimit = upperlimit == false ? maximum(gridcr) : upperlimit
-	lowerlimit = lowerlimit == false ? minimum(gridcr) : lowerlimit
-	img = ax[:imshow](map(x->x < lowerlimit ? NaN : (x > upperlimit ? upperlimit : x), gridcr'), origin="lower", extent=[x0, x1, y0, y1], cmap=cmap, interpolation="nearest", alpha=0.7, vmin=lowerlimit, vmax=upperlimit)
 	ax[:axis]("off")
 	ax[:set_xlim](x0, x1)
 	ax[:set_ylim](y0, y1)
+	return fig, ax
+end
+
+function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow)
+	fig, ax = crplot(boundingbox)
+	boundingbox = resizeboundingbox(boundingbox)
+	x0, y0, x1, y1 = boundingbox
+	upperlimit = upperlimit == false ? maximum(gridcr) : upperlimit
+	lowerlimit = lowerlimit == false ? minimum(gridcr) : lowerlimit
+	img = ax[:imshow](map(x->x < lowerlimit ? NaN : (x > upperlimit ? upperlimit : x), gridcr'), origin="lower", extent=[x0, x1, y0, y1], cmap=cmap, interpolation="nearest", alpha=0.7, vmin=lowerlimit, vmax=upperlimit)
 	return fig, ax, img
 end
 
