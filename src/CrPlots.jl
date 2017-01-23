@@ -84,6 +84,18 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; uppe
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap)
 end
 
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x)
+	boundingbox = resizeboundingbox(boundingbox)
+	x0, y0, x1, y1 = boundingbox
+	numxgridpoints=1920
+	numygridpoints=1080
+	gridxs = [x for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
+	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
+	gridzs = map(posttransform, Kriging.inversedistance(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), pow))
+	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
+	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap)
+end
+
 function crplot(boundingbox)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
