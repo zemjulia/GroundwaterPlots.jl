@@ -61,7 +61,7 @@ function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14)
 	end
 end
 
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
@@ -69,10 +69,10 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimi
 	gridxs = [x for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridcr = interp.griddata((xs, ys), plotdata, (gridxs, gridys), method="linear")
-	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap)
+	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
 
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
@@ -81,10 +81,10 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; uppe
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridzs = map(posttransform, Kriging.krige(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), h->Kriging.expcov(h, 100, 250.)))
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
-	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap)
+	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
 
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
@@ -93,7 +93,7 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Numb
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridzs = map(posttransform, Kriging.inversedistance(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), pow))
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
-	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap)
+	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
 
 function crplot(boundingbox)
@@ -110,8 +110,12 @@ function crplot(boundingbox)
 	return fig, ax
 end
 
-function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow)
-	fig, ax = crplot(boundingbox)
+function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
+	if figax == false
+		fig, ax = crplot(boundingbox)
+	else
+		fig, ax = figax[1], figax[2]
+	end
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	upperlimit = upperlimit == false ? maximum(gridcr) : upperlimit
