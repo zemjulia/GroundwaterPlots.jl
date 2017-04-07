@@ -53,11 +53,11 @@ function addpoints(ax, points; colorstring="k.", markersize=20)
 	end
 end
 
-function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14)
+function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
-		ax[:plot](well_x, well_y, colorstring, markersize=markersize)
-		ax[:text](well_x + 5, well_y + 5, well, fontsize=fontsize, weight="bold")
+		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
+		ax[:text](well_x + 5, well_y + 5, well, fontsize=fontsize, weight="bold", alpha=alpha)
 	end
 end
 
