@@ -15,6 +15,9 @@ const bgy1 = 541047.928481
 
 const rainbow = PyPlot.matplotlib[:cm][:rainbow]
 
+"""
+Add a colorbar to the plot.
+"""
 function addcbar(fig, img, label, ticks; cbar_x0=0.04, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4)
 	cbar_ax = fig[:add_axes]([cbar_x0, cbar_y0, cbar_width, cbar_height])
 	cbar_ax[:text](.5, 1.05, label, fontsize=14, weight="bold", horizontalalignment="center", verticalalignment="baseline")
@@ -26,6 +29,9 @@ function addcbar(fig, img, label, ticks; cbar_x0=0.04, cbar_y0=0.02, cbar_width=
 	end
 end
 
+"""
+Add a length meter to the plot.
+"""
 function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsety=60, meterheight=40)
 	colors = ["k", "white"]
 	colori = 1
@@ -37,6 +43,9 @@ function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsety=60, mete
 	end
 end
 
+"""
+Add a progress bar to the plot.
+"""
 function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pbar_width=0.2, pbar_height=0.04, fontsize=24)
 	pbar_ax = fig[:add_axes]([pbar_x0, pbar_y0, pbar_width, pbar_height])
 	pbar_ax[:axis]("off")
@@ -47,12 +56,18 @@ function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pb
 	pbar_ax[:text](0, -.8, text, fontsize=fontsize, weight="bold")
 end
 
+"""
+Add points to the plot.
+"""
 function addpoints(ax, points; colorstring="k.", markersize=20)
 	for i = 1:size(points, 2)
 		ax[:plot](points[1, i], points[2, i], colorstring, markersize=markersize)
 	end
 end
 
+"""
+Add well points and names to the plot.
+"""
 function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
@@ -61,6 +76,9 @@ function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, a
 	end
 end
 
+"""
+Plot data using linear interpolation.
+"""
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -72,6 +90,9 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimi
 	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
 
+"""
+Plot data using kriging.
+"""
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -84,6 +105,9 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; uppe
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
 
+"""
+Plot data using inverse weighted distance.
+"""
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -96,6 +120,9 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Numb
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
 
+"""
+Create an empty plot with the background image, but no data.
+"""
 function crplot(boundingbox)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -110,6 +137,9 @@ function crplot(boundingbox)
 	return fig, ax
 end
 
+"""
+Plot matrix data.
+"""
 function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
 	if figax == false
 		fig, ax = crplot(boundingbox)
@@ -124,6 +154,9 @@ function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false,
 	return fig, ax, img
 end
 
+"""
+Get well location without using restarts.
+"""
 function dogetwelllocation(well)
 	db.connecttodb()
 	x, y, r = db.getgeometry(well)
@@ -131,6 +164,9 @@ function dogetwelllocation(well)
 	return x, y
 end
 
+"""
+Get 5 tick marks that are appropriate for the plot data.
+"""
 function getticks(plotdata)
 	upperlimit = maximum(plotdata)
 	lowerlimit = minimum(plotdata)
@@ -138,8 +174,14 @@ function getticks(plotdata)
 	return ticks
 end
 
+"""
+Get well location using restarts.
+"""
 const getwelllocation = ReusableFunctions.maker3function(dogetwelllocation, joinpath(dirname(@__FILE__), "../data/wells"))
 
+"""
+Resize the bounding box to have dimensions 16:9
+"""
 function resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	centerx = .5 * (x0 + x1)
