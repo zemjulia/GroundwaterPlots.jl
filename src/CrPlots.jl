@@ -6,6 +6,7 @@ import PyPlot
 import ReusableFunctions
 @PyCall.pyimport aquiferdb as db
 @PyCall.pyimport scipy.interpolate as interp
+import DocumentFunction
 
 const bgimg = PyPlot.matplotlib[:image][:imread](joinpath(dirname(@__FILE__), "../data/bghuge.png"))
 const bgx0 = 496278.281759
@@ -17,6 +18,16 @@ const rainbow = PyPlot.matplotlib[:cm][:rainbow]
 
 """
 Add a colorbar to the plot.
+
+$(DocumentFunction.documentfunction(addcbar;
+argtext=Dict("fig"=>"plot of interest",
+            "img"=>"image for colorbar",
+            "label"=>"label for colorbar",
+            "ticks"=>"ticks for colorbar"),
+keytext=Dict("cbar_x0"=>"colorbar start position on x axis [default=`0.04`]",
+            "cbar_y0"=>"colorbar start position on y axis [default=`0.02`]",
+            "cbar_width"=>"colorbar width [default=`0.03`]",
+            "cbar_height"=>"colorbar height [default=`0.4`]")))
 """
 function addcbar(fig, img, label, ticks; cbar_x0=0.04, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4)
 	cbar_ax = fig[:add_axes]([cbar_x0, cbar_y0, cbar_width, cbar_height])
@@ -31,6 +42,15 @@ end
 
 """
 Add a length meter to the plot.
+
+$(DocumentFunction.documentfunction(addmeter;
+argtext=Dict("ax"=>"axis of interest on the plot",
+            "meterx0"=>"meter start position on x axis",
+            "metery0"=>"meter start position on y axis",
+            "sizes"=>"sizes of patches",
+            "sizestrings"=>"size of text strings"),
+keytext=Dict("textoffsety"=>"text off set on y axis [default=`60`]",
+            "meterheight"=>"meter height [default=`40`]")))
 """
 function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsety=60, meterheight=40)
 	colors = ["k", "white"]
@@ -45,6 +65,17 @@ end
 
 """
 Add a progress bar to the plot.
+
+$(DocumentFunction.documentfunction(addpbar;
+argtext=Dict("fig"=>"plot of interest",
+            "ax"=>"axis of interest",
+            "completeness"=>"",
+            "text"=>"text of the progress bar"),
+keytext=Dict("pbar_x0"=>"progress bar start position on x axis [default=`0.15`]",
+            "pbar_y0"=>"progress bar start position on y axis [default=`0.05`]",
+            "pbar_width"=>"width of progress bar [default=`0.2`]",
+            "pbar_height"=>"height of progress bar [default=`0.04`]",
+            "fontsize"=>"font size of the text [default=`24`]")))
 """
 function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pbar_width=0.2, pbar_height=0.04, fontsize=24)
 	pbar_ax = fig[:add_axes]([pbar_x0, pbar_y0, pbar_width, pbar_height])
@@ -58,6 +89,12 @@ end
 
 """
 Add points to the plot.
+
+$(DocumentFunction.documentfunction(addpoints;
+argtext=Dict("ax"=>"axis of interest on the plot",
+            "points"=>"positions of points"),
+keytext=Dict("colorstring"=>"string to define the color of the points [default=`\"k.\"`]",
+            "markersize"=>"marker size [default=`20`]")))
 """
 function addpoints(ax, points; colorstring="k.", markersize=20)
 	for i = 1:size(points, 2)
@@ -67,6 +104,14 @@ end
 
 """
 Add well points and names to the plot.
+
+$(DocumentFunction.documentfunction(addwells;
+argtext=Dict("ax"=>"axis of interest on the plot",
+            "wellnames"=>"well names"),
+keytext=Dict("colorstring"=>"string to define the color of the well points [default=`\"k.\"`]",
+            "markersize"=>"marker size [default=`20`]",
+            "fontsize"=>"font size of well names [default=`14`]",
+            "alpha"=>"[default=`1.0`]")))
 """
 function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	for well in wellnames
@@ -76,9 +121,6 @@ function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, a
 	end
 end
 
-"""
-Plot data using linear interpolation.
-"""
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -89,10 +131,6 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimi
 	gridcr = interp.griddata((xs, ys), plotdata, (gridxs, gridys), method="linear")
 	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
-
-"""
-Plot data using kriging.
-"""
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -104,10 +142,6 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; uppe
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
-
-"""
-Plot data using inverse weighted distance.
-"""
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -119,10 +153,6 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Numb
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
-
-"""
-Create an empty plot with the background image, but no data.
-"""
 function crplot(boundingbox)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -136,10 +166,6 @@ function crplot(boundingbox)
 	ax[:set_ylim](y0, y1)
 	return fig, ax
 end
-
-"""
-Plot matrix data.
-"""
 function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
 	if figax == false
 		fig, ax = crplot(boundingbox)
@@ -154,8 +180,38 @@ function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false,
 	return fig, ax, img
 end
 
+@doc """
+Plot data using linear interpolation, kriging, or inverse weighted distance; or create an empty plot with the background image, but no data; or plot matrix data basing on the arguments given.
+
+$(DocumentFunction.documentfunction(crplot;
+argtext=Dict("boundingbox"=>"bounding box",
+            "xs"=>"x axis values",
+            "ys"=>"y axis values",
+            "plotdata"=>"plot data",
+            "cov"=>"",
+            "pow"=>"power parameter",
+            "gridcr"=>"grid to create plot on"),
+keytext=Dict("upperlimit"=>"have upper limit [default=`false`]",
+            "lowerlimit"=>"have lower limit [default=`false`]",
+            "cmap"=>"color map [default=`rainbow`]",
+            "pretransform"=>"pre-transform",
+            "posttransform"=>"post transform",
+            "figax"=>"[default=`false`]")))
+
+Returns:
+
+- figure, axies and image with ploted data
+""" crplot
+
 """
 Get well location without using restarts.
+
+$(DocumentFunction.documentfunction(dogetwelllocation;
+argtext=Dict("well"=>"well name")))
+
+Returns:
+
+- well location (x, y value)
 """
 function dogetwelllocation(well)
 	db.connecttodb()
@@ -166,6 +222,13 @@ end
 
 """
 Get 5 tick marks that are appropriate for the plot data.
+
+$(DocumentFunction.documentfunction(plotdata;
+argtext=Dict("plotdata"=>"plot data")))
+
+Returns:
+
+- ticks
 """
 function getticks(plotdata)
 	upperlimit = maximum(plotdata)
@@ -181,6 +244,13 @@ const getwelllocation = ReusableFunctions.maker3function(dogetwelllocation, join
 
 """
 Resize the bounding box to have dimensions 16:9
+
+$(DocumentFunction.documentfunction(boundingbox;
+argtext=Dict("boundingbox"=>"")))
+
+Returns:
+
+- the new location/size of the boundingbox (x0, y0, x1, y1)
 """
 function resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
