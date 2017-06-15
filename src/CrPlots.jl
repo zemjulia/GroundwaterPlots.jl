@@ -93,14 +93,14 @@ end
 """
 Plot data using kriging.
 """
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov=h->Kriging.expcov(h, 100, 250.); upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
 	numygridpoints=1080
 	gridxs = [x for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
-	gridzs = map(posttransform, Kriging.krige(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), h->Kriging.expcov(h, 100, 250.)))
+	gridzs = map(posttransform, Kriging.krige(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), cov))
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
