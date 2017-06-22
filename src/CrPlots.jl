@@ -192,14 +192,14 @@ argtext=Dict("boundingbox"=>"bounding box",
             "xs"=>"x axis values",
             "ys"=>"y axis values",
             "plotdata"=>"plot data",
-            "cov"=>"",
+            "cov"=>"covariances [default=`h->Kriging.expcov\(h, 100, 250.\)`]",
             "pow"=>"power parameter",
             "gridcr"=>"grid to create plot on"),
 keytext=Dict("upperlimit"=>"have upper limit [default=`false`]",
             "lowerlimit"=>"have lower limit [default=`false`]",
             "cmap"=>"color map [default=`rainbow`]",
-            "pretransform"=>"pre-transform",
-            "posttransform"=>"post transform",
+            "pretransform"=>"pre-transform [default=`x-\>x`]",
+            "posttransform"=>"post transform [default=`x-\>x`]",
             "figax"=>"[default=`false`]")))
 
 Returns:
@@ -224,18 +224,17 @@ function dogetwelllocation(well)
 	return x, y
 end
 
-#=
+
 """
 Get 5 tick marks that are appropriate for the plot data.
 
-$(DocumentFunction.documentfunction(plotdata;
+$(DocumentFunction.documentfunction(getticks;
 argtext=Dict("plotdata"=>"plot data")))
 
 Returns:
 
 - ticks
 """
-=#
 function getticks(plotdata)
 	upperlimit = maximum(plotdata)
 	lowerlimit = minimum(plotdata)
@@ -248,18 +247,16 @@ Get well location using restarts.
 """
 const getwelllocation = ReusableFunctions.maker3function(dogetwelllocation, joinpath(dirname(@__FILE__), "../data/wells"))
 
-#=
 """
 Resize the bounding box to have dimensions 16:9
 
-$(DocumentFunction.documentfunction(boundingbox;
-argtext=Dict("boundingbox"=>"")))
+$(DocumentFunction.documentfunction(resizeboundingbox;
+argtext=Dict("boundingbox"=>"bounding box")))
 
 Returns:
 
 - the new location/size of the boundingbox (x0, y0, x1, y1)
 """
-=#
 function resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	centerx = .5 * (x0 + x1)
