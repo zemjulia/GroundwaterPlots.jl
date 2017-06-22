@@ -121,6 +121,7 @@ function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, a
 	end
 end
 
+# Plot data using linear interpolation.
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -143,6 +144,7 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov=h->Kr
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
+# Plot data using inverse weighted distance.
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -154,6 +156,7 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Numb
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
+# Create an empty plot with the background image, but no data.
 function crplot(boundingbox)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
@@ -167,6 +170,7 @@ function crplot(boundingbox)
 	ax[:set_ylim](y0, y1)
 	return fig, ax
 end
+# Plot matrix data.
 function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
 	if figax == false
 		fig, ax = crplot(boundingbox)
