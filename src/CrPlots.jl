@@ -131,10 +131,7 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimi
 	gridcr = interp.griddata((xs, ys), plotdata, (gridxs, gridys), method="linear")
 	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
-
-"""
-Plot data using kriging.
-"""
+# Plot data using kriging.
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov=h->Kriging.expcov(h, 100, 250.); upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
