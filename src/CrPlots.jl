@@ -133,7 +133,7 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimi
 	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
 end
 # Plot data using kriging.
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov=h->Kriging.expcov(h, 100, 250.); upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
