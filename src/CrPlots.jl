@@ -219,6 +219,11 @@ Returns:
 - well location (x, y value)
 """
 function dogetwelllocation(well)
+	if well == "CrEX-4"
+		return 4.992875000000e5, 5.389687500000e5
+	elseif well == "CrIN-6"
+		return 499950.909672, 539103.902232
+	end
 	db.connecttodb()
 	x, y, r = db.getgeometry(well)
 	db.disconnectfromdb()
