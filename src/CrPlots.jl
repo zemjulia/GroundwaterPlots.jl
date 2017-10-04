@@ -8,7 +8,7 @@ import ReusableFunctions
 @PyCall.pyimport scipy.interpolate as interp
 import DocumentFunction
 
-const bgimg = PyPlot.matplotlib[:image][:imread](joinpath(dirname(@__FILE__), "../data/bghuge.png"))
+const bgimg = PyPlot.matplotlib[:image][:imread](joinpath(dirname(@__FILE__), "..", "data", "bghuge.png"))
 const bgx0 = 496278.281759
 const bgy0 = 537396.470881
 const bgx1 = 501949.141159
@@ -251,7 +251,7 @@ end
 """
 Get well location using restarts.
 """
-const getwelllocation = ReusableFunctions.maker3function(dogetwelllocation, joinpath(dirname(@__FILE__), "../data/wells"))
+const getwelllocation = ReusableFunctions.maker3function(dogetwelllocation, joinpath(dirname(@__FILE__), "..", "data", "wells"))
 
 """
 Resize the bounding box to have dimensions 16:9
