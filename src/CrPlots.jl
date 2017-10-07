@@ -21,13 +21,13 @@ Add a colorbar to the plot.
 
 $(DocumentFunction.documentfunction(addcbar;
 argtext=Dict("fig"=>"plot of interest",
-            "img"=>"image for colorbar",
-            "label"=>"label for colorbar",
-            "ticks"=>"ticks for colorbar"),
+			"img"=>"image for colorbar",
+			"label"=>"label for colorbar",
+			"ticks"=>"ticks for colorbar"),
 keytext=Dict("cbar_x0"=>"colorbar start position on x axis [default=`0.04`]",
-            "cbar_y0"=>"colorbar start position on y axis [default=`0.02`]",
-            "cbar_width"=>"colorbar width [default=`0.03`]",
-            "cbar_height"=>"colorbar height [default=`0.4`]")))
+			"cbar_y0"=>"colorbar start position on y axis [default=`0.02`]",
+			"cbar_width"=>"colorbar width [default=`0.03`]",
+			"cbar_height"=>"colorbar height [default=`0.4`]")))
 """
 function addcbar(fig, img, label, ticks; cbar_x0=0.04, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4)
 	cbar_ax = fig[:add_axes]([cbar_x0, cbar_y0, cbar_width, cbar_height])
@@ -45,12 +45,12 @@ Add a length meter to the plot.
 
 $(DocumentFunction.documentfunction(addmeter;
 argtext=Dict("ax"=>"axis of interest on the plot",
-            "meterx0"=>"meter start position on x axis",
-            "metery0"=>"meter start position on y axis",
-            "sizes"=>"sizes of patches",
-            "sizestrings"=>"size of text strings"),
+			"meterx0"=>"meter start position on x axis",
+			"metery0"=>"meter start position on y axis",
+			"sizes"=>"sizes of patches",
+			"sizestrings"=>"size of text strings"),
 keytext=Dict("textoffsety"=>"text off set on y axis [default=`60`]",
-            "meterheight"=>"meter height [default=`40`]")))
+			"meterheight"=>"meter height [default=`40`]")))
 """
 function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsety=60, meterheight=40)
 	colors = ["k", "white"]
@@ -68,14 +68,14 @@ Add a progress bar to the plot.
 
 $(DocumentFunction.documentfunction(addpbar;
 argtext=Dict("fig"=>"plot of interest",
-            "ax"=>"axis of interest",
-            "completeness"=>"",
-            "text"=>"text of the progress bar"),
+			"ax"=>"axis of interest",
+			"completeness"=>"",
+			"text"=>"text of the progress bar"),
 keytext=Dict("pbar_x0"=>"progress bar start position on x axis [default=`0.15`]",
-            "pbar_y0"=>"progress bar start position on y axis [default=`0.05`]",
-            "pbar_width"=>"width of progress bar [default=`0.2`]",
-            "pbar_height"=>"height of progress bar [default=`0.04`]",
-            "fontsize"=>"font size of the text [default=`24`]")))
+			"pbar_y0"=>"progress bar start position on y axis [default=`0.05`]",
+			"pbar_width"=>"width of progress bar [default=`0.2`]",
+			"pbar_height"=>"height of progress bar [default=`0.04`]",
+			"fontsize"=>"font size of the text [default=`24`]")))
 """
 function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pbar_width=0.2, pbar_height=0.04, fontsize=24)
 	pbar_ax = fig[:add_axes]([pbar_x0, pbar_y0, pbar_width, pbar_height])
@@ -92,9 +92,9 @@ Add points to the plot.
 
 $(DocumentFunction.documentfunction(addpoints;
 argtext=Dict("ax"=>"axis of interest on the plot",
-            "points"=>"positions of points"),
+			"points"=>"positions of points"),
 keytext=Dict("colorstring"=>"string to define the color of the points [default=`\"k.\"`]",
-            "markersize"=>"marker size [default=`20`]")))
+			"markersize"=>"marker size [default=`20`]")))
 """
 function addpoints(ax, points; colorstring="k.", markersize=20)
 	for i = 1:size(points, 2)
@@ -107,11 +107,11 @@ Add well points and names to the plot.
 
 $(DocumentFunction.documentfunction(addwells;
 argtext=Dict("ax"=>"axis of interest on the plot",
-            "wellnames"=>"well names"),
+			"wellnames"=>"well names"),
 keytext=Dict("colorstring"=>"string to define the color of the well points [default=`\"k.\"`]",
-            "markersize"=>"marker size [default=`20`]",
-            "fontsize"=>"font size of well names [default=`14`]",
-            "alpha"=>"[default=`1.0`]")))
+			"markersize"=>"marker size [default=`20`]",
+			"fontsize"=>"font size of well names [default=`14`]",
+			"alpha"=>"[default=`1.0`]")))
 """
 function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	for well in wellnames
@@ -190,18 +190,18 @@ Plot data using linear interpolation, kriging, or inverse weighted distance; or 
 
 $(DocumentFunction.documentfunction(crplot;
 argtext=Dict("boundingbox"=>"bounding box",
-            "xs"=>"x axis values",
-            "ys"=>"y axis values",
-            "plotdata"=>"plot data",
-            "cov"=>"covariances [default=`h->Kriging.expcov\(h, 100, 250.\)`]",
-            "pow"=>"power parameter",
-            "gridcr"=>"grid to create plot on"),
+			"xs"=>"x axis values",
+			"ys"=>"y axis values",
+			"plotdata"=>"plot data",
+			"cov"=>"covariances [default=`h->Kriging.expcov\(h, 100, 250.\)`]",
+			"pow"=>"power parameter",
+			"gridcr"=>"grid to create plot on"),
 keytext=Dict("upperlimit"=>"have upper limit [default=`false`]",
-            "lowerlimit"=>"have lower limit [default=`false`]",
-            "cmap"=>"color map [default=`rainbow`]",
-            "pretransform"=>"pre-transform [default=`x-\>x`]",
-            "posttransform"=>"post transform [default=`x-\>x`]",
-            "figax"=>"[default=`false`]")))
+			"lowerlimit"=>"have lower limit [default=`false`]",
+			"cmap"=>"color map [default=`rainbow`]",
+			"pretransform"=>"pre-transform [default=`x-\>x`]",
+			"posttransform"=>"post transform [default=`x-\>x`]",
+			"figax"=>"[default=`false`]")))
 
 Returns:
 
@@ -224,10 +224,15 @@ function dogetwelllocation(well)
 	elseif well == "CrIN-6"
 		return 499950.909672, 539103.902232
 	end
-	db.connecttodb()
-	x, y, r = db.getgeometry(well)
-	db.disconnectfromdb()
-	return x, y
+	try
+		db.connecttodb()
+		x, y, r = db.getgeometry(well)
+		db.disconnectfromdb()
+		return x, y
+	catch errmsg
+		warn("Database connection does not work!")
+		return 0, 0
+	end
 end
 
 
