@@ -230,7 +230,7 @@ function dogetwelllocation(well)
 		db.disconnectfromdb()
 		return x, y
 	catch errmsg
-		warn("Database connection does not work!")
+		watn("Coordinates for $well cannot be taken from the database (database connection may not work!)")
 		return 0, 0
 	end
 end
