@@ -6,6 +6,7 @@ import PyPlot
 import ReusableFunctions
 @PyCall.pyimport aquiferdb as db
 @PyCall.pyimport scipy.interpolate as interp
+PyPlot.register_cmap("RWG", PyPlot.ColorMap("RWG", [parse(Colors.Colorant, "red"), parse(Colors.Colorant, "white"), parse(Colors.Colorant, "green")]))
 import DocumentFunction
 
 const bgimg = PyPlot.matplotlib[:image][:imread](joinpath(dirname(@__FILE__), "..", "data", "bghuge.png"))
@@ -230,7 +231,7 @@ function dogetwelllocation(well)
 		db.disconnectfromdb()
 		return x, y
 	catch errmsg
-		watn("Coordinates for $well cannot be taken from the database (database connection may not work!)")
+		warn("Coordinates for $well cannot be taken from the database (database connection may not work!)")
 		return 0, 0
 	end
 end
