@@ -4,9 +4,12 @@ import Kriging
 import PyCall
 import PyPlot
 import ReusableFunctions
+import Colors
 @PyCall.pyimport aquiferdb as db
 @PyCall.pyimport scipy.interpolate as interp
 PyPlot.register_cmap("RWG", PyPlot.ColorMap("RWG", [parse(Colors.Colorant, "red"), parse(Colors.Colorant, "white"), parse(Colors.Colorant, "green")]))
+PyPlot.register_cmap("RW", PyPlot.ColorMap("RW", [parse(Colors.Colorant, "red"), parse(Colors.Colorant, "white")]))
+PyPlot.register_cmap("WG", PyPlot.ColorMap("WG", [parse(Colors.Colorant, "white"), parse(Colors.Colorant, "green")]))
 import DocumentFunction
 
 const bgimg = PyPlot.matplotlib[:image][:imread](joinpath(dirname(@__FILE__), "..", "data", "bghuge.png"))
@@ -16,6 +19,9 @@ const bgx1 = 501949.141159
 const bgy1 = 541047.928481
 
 const rainbow = PyPlot.matplotlib[:cm][:rainbow]
+const redwhitegreen = PyPlot.ColorMap("RWG")
+const redwhite = PyPlot.ColorMap("RW")
+const whitegreen = PyPlot.ColorMap("WG")
 
 """
 Add a colorbar to the plot.
@@ -247,10 +253,10 @@ Returns:
 
 - ticks
 """
-function getticks(plotdata)
+function getticks(plotdata; step::Number=5, sigdigits::Integer=1)
 	upperlimit = maximum(plotdata)
 	lowerlimit = minimum(plotdata)
-	ticks = map(x->round(x, 1), linspace(lowerlimit, upperlimit, 5))
+	ticks = map(x->round(x, sigdigits), linspace(lowerlimit, upperlimit, step))
 	return ticks
 end
 
