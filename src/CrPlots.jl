@@ -1,16 +1,16 @@
 module CrPlots
 
 import Kriging
+import ReusableFunctions
+import DocumentFunction
 import PyCall
 import PyPlot
-import ReusableFunctions
 import Colors
 @PyCall.pyimport aquiferdb as db
 @PyCall.pyimport scipy.interpolate as interp
-PyPlot.register_cmap("RWG", PyPlot.ColorMap("RWG", [parse(Colors.Colorant, "red"), parse(Colors.Colorant, "white"), parse(Colors.Colorant, "green")]))
-PyPlot.register_cmap("RW", PyPlot.ColorMap("RW", [parse(Colors.Colorant, "red"), parse(Colors.Colorant, "white")]))
-PyPlot.register_cmap("WG", PyPlot.ColorMap("WG", [parse(Colors.Colorant, "white"), parse(Colors.Colorant, "green")]))
-import DocumentFunction
+PyPlot.register_cmap("RWG", PyPlot.ColorMap("RWG", [parse(Colors.Colorant, "green"), parse(Colors.Colorant, "white"), parse(Colors.Colorant, "red")]))
+PyPlot.register_cmap("RW", PyPlot.ColorMap("RW", [parse(Colors.Colorant, "white"), parse(Colors.Colorant, "red")]))
+PyPlot.register_cmap("WG", PyPlot.ColorMap("WG", [parse(Colors.Colorant, "green"), parse(Colors.Colorant, "white")]))
 
 const bgimg = PyPlot.matplotlib[:image][:imread](joinpath(dirname(@__FILE__), "..", "data", "bghuge.png"))
 const bgx0 = 496278.281759
@@ -36,14 +36,14 @@ keytext=Dict("cbar_x0"=>"colorbar start position on x axis [default=`0.04`]",
 			"cbar_width"=>"colorbar width [default=`0.03`]",
 			"cbar_height"=>"colorbar height [default=`0.4`]")))
 """
-function addcbar(fig, img, label, ticks; cbar_x0=0.04, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4)
+function addcbar(fig, img, label, ticks; cbar_x0=0.02, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4, label_x0=-.5, label_y0=1.05, fontsize=14)
 	cbar_ax = fig[:add_axes]([cbar_x0, cbar_y0, cbar_width, cbar_height])
-	cbar_ax[:text](.5, 1.05, label, fontsize=14, weight="bold", horizontalalignment="center", verticalalignment="baseline")
+	cbar_ax[:text](label_x0, label_y0, label, fontsize=fontsize, weight="bold", horizontalalignment="left", verticalalignment="baseline")
 	cbar = fig[:colorbar](img, ticks=ticks, cax=cbar_ax)
 	cbar[:set_clim](minimum(ticks), maximum(ticks))
 	for l in cbar[:ax][:yaxis][:get_ticklabels]()
 		l[:set_weight]("bold")
-		l[:set_fontsize](14)
+		l[:set_fontsize](fontsize)
 	end
 end
 
@@ -56,16 +56,17 @@ argtext=Dict("ax"=>"axis of interest on the plot",
 			"metery0"=>"meter start position on y axis",
 			"sizes"=>"sizes of patches",
 			"sizestrings"=>"size of text strings"),
-keytext=Dict("textoffsety"=>"text off set on y axis [default=`60`]",
+keytext=Dict("textoffsetx"=>"text off set on y axis [default=`20`]",
+			 "textoffsety"=>"text off set on y axis [default=`60`]",
 			"meterheight"=>"meter height [default=`40`]")))
 """
-function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsety=60, meterheight=40)
+function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsetx=30, textoffsety=30, meterheight=40)
 	colors = ["k", "white"]
 	colori = 1
 	for i in reverse(1:length(sizes))
 		rect = PyPlot.matplotlib[:patches][:Rectangle]((meterx0, metery0), sizes[i], meterheight, facecolor=colors[colori], edgecolor="k")
 		ax[:add_patch](rect)
-		ax[:text](meterx0 + sizes[i], metery0 - textoffsety, sizestrings[i])
+		ax[:text](meterx0 + sizes[i] - textoffsetx, metery0 - textoffsety, sizestrings[i])
 		colori = (colori == 1 ? 2 : 1)
 	end
 end
@@ -84,14 +85,14 @@ keytext=Dict("pbar_x0"=>"progress bar start position on x axis [default=`0.15`]"
 			"pbar_height"=>"height of progress bar [default=`0.04`]",
 			"fontsize"=>"font size of the text [default=`24`]")))
 """
-function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pbar_width=0.2, pbar_height=0.04, fontsize=24)
+function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pbar_width=0.2, pbar_height=0.04, fontsize=20)
 	pbar_ax = fig[:add_axes]([pbar_x0, pbar_y0, pbar_width, pbar_height])
 	pbar_ax[:axis]("off")
 	bgrect = PyPlot.matplotlib[:patches][:Rectangle]((0, 0), 1, 1, facecolor="k", edgecolor="none", alpha=0.4)
 	fgrect = PyPlot.matplotlib[:patches][:Rectangle]((0, 0), completeness, 1, facecolor="k", edgecolor="none", alpha=0.7)
 	pbar_ax[:add_patch](bgrect)
 	pbar_ax[:add_patch](fgrect)
-	pbar_ax[:text](0, -.8, text, fontsize=fontsize, weight="bold")
+	pbar_ax[:text](0, -1, text, fontsize=fontsize, weight="bold")
 end
 
 """
@@ -242,9 +243,18 @@ function dogetwelllocation(well)
 	end
 end
 
-
-"""
-Get 5 tick marks that are appropriate for the plot data.
+function getticks(plotdata::Vector; step::Number=5, sigdigits::Integer=1)
+	upperlimit = maximum(plotdata)
+	lowerlimit = minimum(plotdata)
+	ticks = getticks(lowerlimit, upperlimit; step=step, sigdigits=sigdigits)
+	return ticks
+end
+function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1)
+	ticks = map(x->round(x, sigdigits), linspace(lowerlimit, upperlimit, step))
+	return ticks
+end
+@doc """
+Get tick marks that are appropriate for the plot data.
 
 $(DocumentFunction.documentfunction(getticks;
 argtext=Dict("plotdata"=>"plot data")))
@@ -252,13 +262,7 @@ argtext=Dict("plotdata"=>"plot data")))
 Returns:
 
 - ticks
-"""
-function getticks(plotdata; step::Number=5, sigdigits::Integer=1)
-	upperlimit = maximum(plotdata)
-	lowerlimit = minimum(plotdata)
-	ticks = map(x->round(x, sigdigits), linspace(lowerlimit, upperlimit, step))
-	return ticks
-end
+""" getticks
 
 """
 Get well location using restarts.
