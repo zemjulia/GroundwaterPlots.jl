@@ -256,7 +256,7 @@ function getticksold(lowerlimit::Number, upperlimit::Number; step::Number=5, sig
 	return ticks
 end
 function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1)
-	@show upperlimit, lowerlimit
+	#@show upperlimit, lowerlimit
 	dx = (upperlimit-lowerlimit) / (step - 1)
 	fl = floor(log10(dx))
 	rbase = convert(Int64, ceil(10^fl/2))
@@ -271,7 +271,7 @@ function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdig
 	dxr = round(dx, sigdig, rbase)
 	mn = round(lowerlimit, sigdig, rbase)
 	mx = round(upperlimit, sigdig, rbase)
-	@show mn, mx, dx, dxr
+	#@show mn, mx, dx, dxr
 	if dxr <= 0
 		dxr = dx
 	end
