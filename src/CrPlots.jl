@@ -34,13 +34,15 @@ argtext=Dict("fig"=>"plot of interest",
 keytext=Dict("cbar_x0"=>"colorbar start position on x axis [default=`0.04`]",
 			"cbar_y0"=>"colorbar start position on y axis [default=`0.02`]",
 			"cbar_width"=>"colorbar width [default=`0.03`]",
-			"cbar_height"=>"colorbar height [default=`0.4`]")))
+			"cbar_height"=>"colorbar height [default=`0.4`]",
+			"label_x0"=>"label start position on x axis [default=`-0.5`]",
+			"label_y0"=>"label start position on y axis [default=`1.05`]")))
 """
-function addcbar(fig, img, label, ticks; cbar_x0=0.02, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4, label_x0=-.5, label_y0=1.05, fontsize=14)
+function addcbar(fig, img, label, ticks, lowerlimit, upperlimit; cbar_x0=0.02, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4, label_x0=-.5, label_y0=1.05, fontsize=14)
 	cbar_ax = fig[:add_axes]([cbar_x0, cbar_y0, cbar_width, cbar_height])
 	cbar_ax[:text](label_x0, label_y0, label, fontsize=fontsize, weight="bold", horizontalalignment="left", verticalalignment="baseline")
 	cbar = fig[:colorbar](img, ticks=ticks, cax=cbar_ax)
-	cbar[:set_clim](minimum(ticks), maximum(ticks))
+	cbar[:set_clim](lowerlimit, upperlimit)
 	for l in cbar[:ax][:yaxis][:get_ticklabels]()
 		l[:set_weight]("bold")
 		l[:set_fontsize](fontsize)
@@ -249,8 +251,40 @@ function getticks(plotdata::Vector; step::Number=5, sigdigits::Integer=1)
 	ticks = getticks(lowerlimit, upperlimit; step=step, sigdigits=sigdigits)
 	return ticks
 end
-function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1)
+function getticksold(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1)
 	ticks = map(x->round(x, sigdigits), linspace(lowerlimit, upperlimit, step))
+	return ticks
+end
+function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1)
+	dx = (upperlimit-lowerlimit) / (step - 1)
+	fl = floor(log10(dx)) + 1
+	rbase = convert(Int64, ceil(10^fl/2))
+	#@show rbase
+	if rbase > 6
+		rbase = 10
+	elseif rbase > 5
+		rbase = 5
+	end
+	sigdig = convert(Int64, -fl)
+	if fl < 0
+		rbase = 10
+	end
+	#@show dx, rbase, sigdig
+	dx = round(dx, sigdig+1, rbase)
+	mx = round(upperlimit, sigdig, rbase)
+	mn = round(lowerlimit, sigdig, rbase)
+	if mn < lowerlimit
+		mn = mn + rbase
+	end
+	if mn > upperlimit
+		mn = mn - rbase
+	end
+	#@show mn, mx, dx
+	ticks = collect(mn:dx:mx)
+	if ticks[end] != mx
+		ticks[end] = mx
+	end
+	#@show ticks
 	return ticks
 end
 @doc """
