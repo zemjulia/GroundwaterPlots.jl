@@ -270,7 +270,7 @@ function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdig
 		rbase = 10
 	end
 	@show dx, rbase, sigdig
-	dx = round(dx, sigdig+1, rbase)
+	dxr = round(dx, sigdig+1, rbase)
 	mx = round(upperlimit, sigdig, rbase)
 	mn = round(lowerlimit, sigdig, rbase)
 	while mn < lowerlimit
@@ -282,6 +282,9 @@ function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdig
 	if mx == mn
 		mn = lowerlimit
 		mx = upperlimit
+	end
+	if dxr <= 0
+		dxr = dx
 	end
 	@show mn, mx, dx
 	ticks = collect(mn:dx:mx)
