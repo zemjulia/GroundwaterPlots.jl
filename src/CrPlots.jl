@@ -276,7 +276,6 @@ function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdig
 		dxr = dx
 	end
 	while mn < lowerlimit
-		@show mn, lowerlimit
 		mn += rbase
 	end
 	while mx > upperlimit
