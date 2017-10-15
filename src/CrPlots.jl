@@ -255,38 +255,40 @@ function getticksold(lowerlimit::Number, upperlimit::Number; step::Number=5, sig
 	ticks = map(x->round(x, sigdigits), linspace(lowerlimit, upperlimit, step))
 	return ticks
 end
-function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1)
-	#@show upperlimit, lowerlimit
+function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1, quiet=true)
+	!quiet && @show upperlimit, lowerlimit
 	dx = (upperlimit-lowerlimit) / (step - 1)
 	fl = floor(log10(dx))
 	rbase = convert(Int64, ceil(10^fl/2))
-	#@show rbase
 	if fl < 0
 		rbase = 10
 		sigdig = convert(Int64, -fl)
 	else
 		sigdig = -1
 	end
-	#@show dx, rbase, sigdig
+	!quiet && @show dx, fl, rbase, sigdig
 	dxr = round(dx, sigdig, rbase)
 	mn = round(lowerlimit, sigdig, rbase)
 	mx = round(upperlimit, sigdig, rbase)
-	#@show mn, mx, dx, dxr
+	!quiet && @show mn, mx, dxr
 	if dxr <= 0
 		dxr = dx
 	end
+	stepm = fl < 0 ? dxr : rbase
 	while mn < lowerlimit
-		mn += rbase
+		mn += stepm
+		!quiet && @show mn, stepm
 	end
 	while mx > upperlimit
-		mx -= rbase
+		mx -= stepm
+		!quiet && @show mx, stepm
 	end
-	#@show mn, mx, dx, dxr
+	!quiet && @show mn, mx, dx, dxr, stepm
 	if mx == mn
 		mn = lowerlimit
 		mx = upperlimit
+		!quiet && @show mn, mx
 	end
-	#@show mn, mx, dx, dxr
 	ticks = collect(mn:dxr:mx)
 	if length(ticks) > 0 && ticks[end] != mx
 		ticks[end] = mx
