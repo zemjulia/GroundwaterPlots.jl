@@ -290,16 +290,16 @@ function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdig
 		!quiet && @show mn, mx
 	end
 	ticks = collect(mn:dxr:mx)
-	if length(ticks) > 0 && ticks[end] != mx
-		ticks[end] = mx
-	end
-	if length(ticks) == 1
-		push!(ticks, upperlimit)
-	elseif length(ticks) == 0
+	if length(ticks) == 0
 		push!(ticks, lowerlimit)
 		push!(ticks, upperlimit)
+	elseif length(ticks) == 1
+		ticks[1] = lowerlimit
+		push!(ticks, upperlimit)
+	elseif ticks[end] != mx
+		ticks[end] = mx
 	end
-	#@show ticks
+	!quiet && @show ticks
 	return ticks
 end
 @doc """
