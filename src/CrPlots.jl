@@ -38,7 +38,7 @@ keytext=Dict("cbar_x0"=>"colorbar start position on x axis [default=`0.04`]",
 			"label_x0"=>"label start position on x axis [default=`-0.5`]",
 			"label_y0"=>"label start position on y axis [default=`1.05`]")))
 """
-function addcbar(fig, img, label, ticks, lowerlimit, upperlimit; cbar_x0=0.02, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4, label_x0=-.5, label_y0=1.05, fontsize=14)
+function addcbar(fig, img, label, ticks, lowerlimit, upperlimit; cbar_x0=0.02, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4, label_x0=-.5, label_y0=1.05, fontsize=14, alpha=1.0)
 	cbar_ax = fig[:add_axes]([cbar_x0, cbar_y0, cbar_width, cbar_height])
 	cbar_ax[:text](label_x0, label_y0, label, fontsize=fontsize, weight="bold", horizontalalignment="left", verticalalignment="baseline")
 	cbar = fig[:colorbar](img, ticks=ticks, cax=cbar_ax)
@@ -181,7 +181,7 @@ function crplot(boundingbox)
 	return fig, ax
 end
 # Plot matrix data.
-function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
+function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false, alpha=0.7)
 	if figax == false
 		fig, ax = crplot(boundingbox)
 	else
@@ -191,7 +191,7 @@ function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false,
 	x0, y0, x1, y1 = boundingbox
 	upperlimit = upperlimit == false ? maximum(gridcr) : upperlimit
 	lowerlimit = lowerlimit == false ? minimum(gridcr) : lowerlimit
-	img = ax[:imshow](map(x->x < lowerlimit ? NaN : (x > upperlimit ? upperlimit : x), gridcr'), origin="lower", extent=[x0, x1, y0, y1], cmap=cmap, interpolation="nearest", alpha=0.7, vmin=lowerlimit, vmax=upperlimit)
+	img = ax[:imshow](map(x->x < lowerlimit ? NaN : (x > upperlimit ? upperlimit : x), gridcr'), origin="lower", extent=[x0, x1, y0, y1], cmap=cmap, interpolation="nearest", alpha=alpha, vmin=lowerlimit, vmax=upperlimit)
 	return fig, ax, img
 end
 
