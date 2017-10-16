@@ -112,24 +112,30 @@ function addpoints(ax, points; colorstring="k.", markersize=20)
 	end
 end
 
-"""
-Add well points and names to the plot.
-
-$(DocumentFunction.documentfunction(addwells;
-argtext=Dict("ax"=>"axis of interest on the plot",
-			"wellnames"=>"well names"),
-keytext=Dict("colorstring"=>"string to define the color of the well points [default=`\"k.\"`]",
-			"markersize"=>"marker size [default=`20`]",
-			"fontsize"=>"font size of well names [default=`14`]",
-			"alpha"=>"[default=`1.0`]")))
-"""
-function addwells(ax, wellnames; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
+function addwells(ax, wellnames::Vector{String}; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
 		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
 		ax[:text](well_x + 5, well_y + 5, well, fontsize=fontsize, weight="bold", alpha=alpha)
 	end
 end
+function addwells(ax, x::Vector{Number}, y::Vector{Number}; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
+	@assert length(x) == length(y)
+	for i = length(x)
+		ax[:plot](x[i], y[i], colorstring, markersize=markersize, alpha=alpha)
+	end
+end
+@doc """
+Add well points and names to the plot.
+
+$(DocumentFunction.documentfunction(addwells;
+argtext=Dict("ax"=>"axes of interest on the plot",
+			"wellnames"=>"well names"),
+keytext=Dict("colorstring"=>"string to define the color of the well points [default=`\"k.\"`]",
+			"markersize"=>"marker size [default=`20`]",
+			"fontsize"=>"font size of well names [default=`14`]",
+			"alpha"=>"[default=`1.0`]")))
+""" addwells
 
 # Plot data using linear interpolation.
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
