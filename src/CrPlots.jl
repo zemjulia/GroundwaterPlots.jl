@@ -138,7 +138,7 @@ keytext=Dict("colorstring"=>"string to define the color of the well points [defa
 """ addwells
 
 # Plot data using linear interpolation.
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false, alpha=1.0)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
@@ -146,10 +146,10 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimi
 	gridxs = [x for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridcr = interp.griddata((xs, ys), plotdata, (gridxs, gridys), method="linear")
-	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
+	return crplot(boundingbox, gridcr; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax, alpha=alpha)
 end
 # Plot data using kriging.
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false, alpha=1.0)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
@@ -158,10 +158,10 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, cov; uppe
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridzs = map(posttransform, Kriging.krige(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), cov))
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
-	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
+	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax, alpha=alpha)
 end
 # Plot data using inverse weighted distance.
-function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false)
+function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Number; upperlimit=false, lowerlimit=false, cmap=rainbow, pretransform=x->x, posttransform=x->x, figax=false, alpha=1.0)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	numxgridpoints=1920
@@ -170,17 +170,17 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Numb
 	gridys = [y for x in linspace(x0, x1, numxgridpoints), y in linspace(y0, y1, numygridpoints)]
 	gridzs = map(posttransform, Kriging.inversedistance(hcat(gridxs[:], gridys[:])', hcat(xs, ys)', map(pretransform, plotdata), pow))
 	griddata = reshape(gridzs, numxgridpoints, numygridpoints)
-	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax)
+	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax, alpha=alpha)
 end
 # Create an empty plot with the background image, but no data.
-function crplot(boundingbox)
+function crplot(boundingbox; alpha=1.0)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	fig, ax = PyPlot.subplots()
 	fig[:delaxes](ax)
 	ax = fig[:add_axes]([0, 0, 1, 1], frameon=false)
 	fig[:set_size_inches](16, 9)
-	img = ax[:imshow](bgimg, extent=[bgx0, bgx1, bgy0, bgy1], alpha=1.)
+	img = ax[:imshow](bgimg, extent=[bgx0, bgx1, bgy0, bgy1], alpha=alpha)
 	ax[:axis]("off")
 	ax[:set_xlim](x0, x1)
 	ax[:set_ylim](y0, y1)
@@ -235,7 +235,7 @@ Returns:
 - well location (x, y value)
 """
 function dogetwelllocation(well)
-	if well == "CrEX-4"
+	if well == "CrEX-4alpha"
 		return 4.992875000000e5, 5.389687500000e5
 	elseif well == "CrIN-6"
 		return 499950.909672, 539103.902232
