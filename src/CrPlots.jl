@@ -125,6 +125,15 @@ function addwells(ax, x::Vector{Number}, y::Vector{Number}; colorstring="k.", ma
 		ax[:plot](x[i], y[i], colorstring, markersize=markersize, alpha=alpha)
 	end
 end
+
+function addwells(ax, wellnames::Vector{String}; xoffset=5, yoffset=5, colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
+	for well in wellnames
+		well_x, well_y = getwelllocation(well)
+		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
+		ax[:text](well_x + xoffset, well_y + yoffset, well, fontsize=fontsize, weight="bold", alpha=alpha)
+	end
+end
+
 @doc """
 Add well points and names to the plot.
 
