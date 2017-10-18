@@ -187,9 +187,9 @@ function crplot(boundingbox; alpha=1.0)
 	return fig, ax
 end
 # Plot matrix data.
-function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false, alpha=0.7)
+function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false, alpha=0.7, alphabackground=1.0)
 	if figax == false
-		fig, ax = crplot(boundingbox)
+		fig, ax = crplot(boundingbox; alphabackground=1.0)
 	else
 		fig, ax = figax[1], figax[2]
 	end
