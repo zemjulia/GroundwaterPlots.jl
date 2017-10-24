@@ -133,6 +133,13 @@ function addwells(ax, wellnames::Vector{String}; xoffset=5, yoffset=5, colorstri
 		ax[:text](well_x + xoffset, well_y + yoffset, well, fontsize=fontsize, weight="bold", alpha=alpha)
 	end
 end
+## addwells function that uses well dictionary for well location and well offset
+function addwells(ax, wellnames::Vector{String}, wells::Dict{String,Any}; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
+	for well in wellnames
+		ax[:plot](wells[well]["well_x"], wells[well]["well_y"], colorstring, markersize=markersize, alpha=alpha)
+		ax[:text](wells[well]["well_x"] + wells[well]["xoffset"], wells[well]["well_y"] + wells[well]["yoffset"], well, fontsize=fontsize, weight="bold", alpha=alpha)
+	end
+end
 
 @doc """
 Add well points and names to the plot.
