@@ -112,13 +112,6 @@ function addpoints(ax, points; colorstring="k.", markersize=20)
 	end
 end
 
-function addwells(ax, wellnames::Vector{String}; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
-	for well in wellnames
-		well_x, well_y = getwelllocation(well)
-		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
-		ax[:text](well_x + 5, well_y + 5, well, fontsize=fontsize, weight="bold", alpha=alpha)
-	end
-end
 function addwells(ax, x::Vector{Number}, y::Vector{Number}; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	@assert length(x) == length(y)
 	for i = length(x)
@@ -203,9 +196,9 @@ function crplot(boundingbox; alpha=1.0)
 	return fig, ax
 end
 # Plot matrix data.
-function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false, alpha=0.7)
+function crplot(boundingbox, gridcr::Matrix; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false, alpha=0.7, alphabackground=1.0)
 	if figax == false
-		fig, ax = crplot(boundingbox)
+		fig, ax = crplot(boundingbox; alphabackground=1.0)
 	else
 		fig, ax = figax[1], figax[2]
 	end
