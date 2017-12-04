@@ -8,6 +8,9 @@ import PyPlot
 import Colors
 @PyCall.pyimport aquiferdb as db
 @PyCall.pyimport scipy.interpolate as interp
+@PyCall.pyimport matplotlib.colors as mc
+@PyCall.pyimport numpy as np
+@PyCall.pyimport matplotlib.patheffects as PathEffects
 PyPlot.register_cmap("RWG", PyPlot.ColorMap("RWG", [parse(Colors.Colorant, "green"), parse(Colors.Colorant, "white"), parse(Colors.Colorant, "red")]))
 PyPlot.register_cmap("RW", PyPlot.ColorMap("RW", [parse(Colors.Colorant, "white"), parse(Colors.Colorant, "red")]))
 PyPlot.register_cmap("WG", PyPlot.ColorMap("WG", [parse(Colors.Colorant, "green"), parse(Colors.Colorant, "white")]))
@@ -19,9 +22,145 @@ const bgx1 = 501949.141159
 const bgy1 = 541047.928481
 
 const rainbow = PyPlot.matplotlib[:cm][:rainbow]
+const earth = PyPlot.matplotlib[:cm][:gist_earth]
+const discrete = PyPlot.matplotlib[:cm][:Accent]
+const spectral = PyPlot.matplotlib[:cm][:spectral]
 const redwhitegreen = PyPlot.ColorMap("RWG")
 const redwhite = PyPlot.ColorMap("RW")
 const whitegreen = PyPlot.ColorMap("WG")
+
+
+"""
+Interpolates the opacity of a colormap according to some function, where
+the functions are: (i) piecewise linear, (ii) Gaussian curve, and (iii) inverse Gaussian curve. 
+
+$(DocumentFunction.documentfunction(cmap_alpha;
+argtext=Dict("cmap"=>"PyPlot colormap",
+			"center"=>"for gaussian, sets center of bell. For linear, sets l.h.s of line",
+			"width"=>"for gaussian, sets width of bell. For linear, sets r.h.s of line"),
+keytext=Dict("method"=>"method of alpha interpolation (inv_gauss, gauss, linear)")))
+"""
+function cmap_alpha(cmap::PyPlot.ColorMap,center::Number,width::Number;method::Symbol=:inv_gauss)
+	N = cmap[:N]
+	b = center*N
+	c = width
+
+	alpha = Array{Float64}(N)
+
+	# Alpha will be 0 for x < b, 1 for x > c, 
+	# and linearly increasing from b to c.
+	function linear(x,b,c)
+		if (x < b)
+			return 0.
+		elseif (x > c)
+			return 1.
+		else
+			return x/(c-b) - b/(c-b)
+		end
+	end
+
+	gauss(x,b,c) = exp(-((x-b)^2)/(2*c^2))
+	inv_gauss(x,b,c) = 1 - gauss(x,b,c)
+
+	# Return alpha based on method
+	function find_alpha(x,b,c)
+		if method==:linear
+			return linear(x,b,c)
+		elseif method==:gauss
+			return gauss(x,b,c)
+		elseif method==:inv_gauss
+			return inv_gauss(x,b,c)
+		else
+			throw(UndefVarError(method))
+		end
+	end
+
+	# Get the alpha value
+	for x=1:N
+		alpha[x] = find_alpha(x,center*N,width)
+	end
+
+	new_cmap = cmap(np.arange(cmap[:N]))
+
+	new_cmap[:,4] = alpha
+	new_cmap = mc.ListedColormap(new_cmap)
+
+	return new_cmap
+end
+
+# DELETE THIS - for testing alpha
+const betabar = cmap_alpha(rainbow,0.188365,20)
+
+"""
+For all well labels that overlap another, rotate the label until it doesn't overlap.
+Currently *does not work*. Work in progress.
+
+$(DocumentFunction.documentfunction(snap_labels;
+argtext=Dict("wells"=>"Well names as string vector",
+			"offset_x"=>"X-offset of labels from well X",
+			"offset_y"=>"X-offset of labels from well X")))
+"""
+function snap_labels(wells::Vector,offset_x::Number,offset_y::Number)
+
+	# Rotates a point (x,y) by angle θ
+	function rotate_vector(x::Number, y::Number, θ::Number)
+		R = Array{Float64}(2,2)
+		R = [cosd(θ) -sind(θ); sind(θ) cosd(θ)]
+		return R*[x;y]
+	end
+	
+	# Returns boolean true / false based on rectangles overlapping
+	function rect_overlap(x0::Number, y0::Number, x1::Number, y1::Number; w::Number=200, h::Number=50)
+		r0x = x0 + w # Rect 1, right-side X
+		r1x = x1 + w # Rect 2, right-side X
+		r0y = y0 + h # Rect 1, right-side Y
+		r1y = y1 + h # Rect 2, right-side Y
+	
+		if (x0 > r1x || x1 > r0x)
+			return false
+		elseif (y0 < r1y || y1 < r0y)
+			return false
+		else
+			return true
+		end
+	end
+
+	well_pos = Dict() # Dictionary of 'new' label positions
+	θ = 5. # Degrees to rotate every loop
+	threshold = Int(round(360 / θ)) # Number of attempts to rotate before 'giving up'
+	repeat = 5 # Number of times to repeat function
+
+	# Repeat some number of times to find approx. equilibrium
+	for r=1:repeat
+		for w0 in wells
+			x,y = getwelllocation(w0)
+			i = 0
+			for w in wells
+
+				if w != w0
+					x1, y1 = getwelllocation(w)
+					# Repeat until (i) threshold or (ii) non-overlap
+					while true
+						if rect_overlap(x,y,x1,y1) == false
+							break
+						end
+					
+						v = rotate_vector(x,y,θ)
+						x = v[1]
+						y = v[2]
+
+						i += 1
+						if i > threshold
+							break
+						end
+					end
+				end
+			end
+			well_pos[w0] = [x y]
+		end
+	end
+	return well_pos
+end
 
 """
 Add a colorbar to the plot.
@@ -47,6 +186,66 @@ function addcbar(fig, img, label, ticks, lowerlimit, upperlimit; cbar_x0=0.02, c
 		l[:set_weight]("bold")
 		l[:set_fontsize](fontsize)
 	end
+	cbar[:set_alpha](0.)
+end
+
+"""
+Add a custom colorbar to the plot. Much more customization (and aesthetic) than default PyPlot colorbar.
+
+$(DocumentFunction.documentfunction(addcbar_horizontal;
+argtext=Dict("ax"=>"PyPlot axis",
+			"cmap"=>"PyPlot colormap",
+			"title"=>"colobar title",
+			"x0"=>"X-position of colorbar",
+			"y0"=>"Y-position of colorbar",
+			"ticks"=>"array of tick values from getticks()",
+			"min"=>"minimum data value",
+			"max"=>"maximum data value"),
+keytext=Dict("width"=>"colorbar width",
+			"height"=>"colorbar height")))
+"""
+function addcbar_horizontal(ax, cmap::PyPlot.ColorMap, title::String, x0::Number, y0::Number, ticks::Vector, min::Number, max::Number; width::Number=1000, height::Number=40)
+	N = cmap[:N] # Number of discrete color values in colormap
+	bin = width / N # Width of each color rectangle to be drawn
+	tick_h = height / 2 # Tick height
+	tick_w = 5 # Tick width
+
+	# Colormap is matrix of RGBA columns, and typically 256 rows
+	# Pull RGB values from colormap
+	gradient = cmap(np.arange(cmap[:N]))
+	r = gradient[:,1]
+	g = gradient[:,2]
+	b = gradient[:,3]
+
+	# Add title bar
+	ax[:text]((x0 + width / 2), (y0 + 1.37*height), title, fontsize=13, alpha=1., style="italic", horizontalalignment="center", path_effects=[PathEffects.withStroke(linewidth=3,foreground="w",alpha=0.4)])
+
+	# Draw one rectangle for each color value in colormap
+	for i=1:N
+		x = bin*i + x0
+		slice = PyPlot.matplotlib[:patches][:Rectangle]((x, y0), bin, height, facecolor=(r[i],g[i],b[i]), edgecolor="none")
+		ax[:add_patch](slice)
+	end
+
+	# Add border on top of drawn colorbar
+	border = PyPlot.matplotlib[:patches][:Rectangle]((x0, y0), width, height, facecolor="none", edgecolor="k")
+	ax[:add_patch](border)
+
+	# Check that all values within 'ticks' are Integer
+	cond = (sum(ticks - convert(Array{Int64},round.(ticks))) == 0. ? true : false)
+
+	# Draw tick lines and magnitude
+	for tick in ticks
+		x = (width / (max-min)) * tick + x0 # Set tick pos. relative to cbar width
+		t = PyPlot.matplotlib[:patches][:Rectangle]((x, y0 - tick_h), tick_w, tick_h, facecolor=(0.,0.,0.), edgecolor="none")
+		ax[:add_patch](t)
+
+		tick_s = (cond == true ? string(Int(tick)) : string(tick)) # 'float' to string or 'int' to string?
+
+		# Draw text
+		ax[:text](x + tick_w / 2, y0 - height - 1.2*tick_h, tick_s, fontsize=11, alpha=1., horizontalalignment="center")
+	end
+
 end
 
 """
@@ -119,6 +318,26 @@ function addwells(ax, x::Vector{Number}, y::Vector{Number}; colorstring="k.", ma
 	end
 end
 
+## This version of addwells displays well names with a semi-transparent outline for legibility ##
+function addwells_beta(ax, wellnames::Vector{String}; xoffset=5, yoffset=5, colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
+
+	#well_locs = snap_labels(wellnames, xoffset, yoffset)
+
+	#function get_new_location(well)
+	#	loc = well_locs[well]
+	#	return loc[1],loc[2]
+	#end
+
+	# Iterate over well string names
+	for well in wellnames
+		well_x, well_y = getwelllocation(well) # Get X,Y of well
+		#well_x, well_y = get_new_location(well) # Get X,Y of well
+		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha) # Draw marker
+		ax[:annotate](well,(well_x + xoffset,well_y + yoffset),size=fontsize,color="black",path_effects=[PathEffects.withStroke(linewidth=3,foreground="w",alpha=0.4)])
+	end
+
+end
+
 function addwells(ax, wellnames::Vector{String}; xoffset=5, yoffset=5, colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
@@ -182,14 +401,14 @@ function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector, pow::Numb
 	return crplot(boundingbox, griddata; upperlimit=upperlimit, lowerlimit=lowerlimit, cmap=cmap, figax=figax, alpha=alpha)
 end
 # Create an empty plot with the background image, but no data.
-function crplot(boundingbox; alpha=1.0)
+function crplot(boundingbox; alphabackground=1.0)
 	boundingbox = resizeboundingbox(boundingbox)
 	x0, y0, x1, y1 = boundingbox
 	fig, ax = PyPlot.subplots()
 	fig[:delaxes](ax)
 	ax = fig[:add_axes]([0, 0, 1, 1], frameon=false)
 	fig[:set_size_inches](16, 9)
-	img = ax[:imshow](bgimg, extent=[bgx0, bgx1, bgy0, bgy1], alpha=alpha)
+	img = ax[:imshow](bgimg, extent=[bgx0, bgx1, bgy0, bgy1], alpha=alphabackground)
 	ax[:axis]("off")
 	ax[:set_xlim](x0, x1)
 	ax[:set_ylim](y0, y1)
