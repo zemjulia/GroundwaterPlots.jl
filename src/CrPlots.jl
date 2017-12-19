@@ -241,6 +241,8 @@ function dogetwelllocation(well)
 		return 4.992875000000e5, 5.389687500000e5
 	elseif well == "CrIN-6"
 		return 499950.909672, 539103.902232
+	elseif well == "CrEX-4"
+		return 499278.43, 538971.99
 	end
 	try
 		db.connecttodb()
