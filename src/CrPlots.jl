@@ -177,16 +177,21 @@ keytext=Dict("cbar_x0"=>"colorbar start position on x axis [default=`0.04`]",
 			"label_x0"=>"label start position on x axis [default=`-0.5`]",
 			"label_y0"=>"label start position on y axis [default=`1.05`]")))
 """
-function addcbar(fig, img, label, ticks, lowerlimit, upperlimit; cbar_x0=0.02, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4, label_x0=-.5, label_y0=1.05, fontsize=14, alpha=1.0)
+function addcbar(fig, img, label, ticks; cbar_x0=0.02, cbar_y0=0.02, cbar_width=0.03, cbar_height=0.4, label_x0=-.5, label_y0=1.05, fontsize=14, alpha=1.0)
 	cbar_ax = fig[:add_axes]([cbar_x0, cbar_y0, cbar_width, cbar_height])
 	cbar_ax[:text](label_x0, label_y0, label, fontsize=fontsize, weight="bold", horizontalalignment="left", verticalalignment="baseline")
 	cbar = fig[:colorbar](img, ticks=ticks, cax=cbar_ax)
-	cbar[:set_clim](lowerlimit, upperlimit)
 	for l in cbar[:ax][:yaxis][:get_ticklabels]()
 		l[:set_weight]("bold")
 		l[:set_fontsize](fontsize)
 	end
 	cbar[:set_alpha](0.)
+	return cbar
+end
+function addcbar(fig, img, label, ticks, lowerlimit, upperlimit; kwargs...)
+	cbar = addcbar(fig, img, label, ticks; kwargs...)
+	cbar[:set_clim](lowerlimit, upperlimit)
+	return cbar
 end
 
 """
@@ -338,7 +343,7 @@ function addwells_beta(ax, wellnames::Vector{String}; xoffset=5, yoffset=5, colo
 
 end
 
-function addwells(ax, wellnames::Vector{String}; xoffset=5, yoffset=5, colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
+function addwells(ax, wellnames::Vector; xoffset=5, yoffset=5, colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
 		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
