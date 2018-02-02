@@ -14,7 +14,7 @@ function isgoodwell(x)
 	end
 end
 goodwells = map(isgoodwell, fullwellnames)
-species = ["Cr", "Cl-", "ClO4", "3H", "NO3", "Ca", "Mg", "SO4"]
+sourcenames = map(i->"S$i", 1:7)
 years = Int.(linspace(2005, 2016, 12))
 W = JLD.load("cr-20170911-w01-s20-y1-noscale-7-1000.jld", "W")
 
@@ -32,17 +32,23 @@ xs = welllocations[1, :]
 ys = welllocations[2, :]
 boundingbox = (minimum(xs) - 50, minimum(ys) - 250, maximum(xs) + 250, maximum(ys) + 250)
 
-upperlimit = maximum(filter(x->!isnan(x), W[:]))
-@show upperlimit
+if !isdir("figs")
+	mkdir("figs")
+end
+
+lowerlimit = [0.05, 0.2, 0, 0, 0.05, 0.07, 0]
 for j = 1:size(W, 2)
 	#for i = 1:length(years)
 	for i = length(years):length(years)
 		mixvec = W[:, j, i]
+		upperlimit = maximum(filter(x->!isnan(x), mixvec[:]))
+		@show upperlimit, lowerlimit[j]
 		nonnans = map(x->!isnan(x), mixvec)
-		fig, ax, img = CrPlots.crplot(boundingbox, welllocations[1, nonnans], welllocations[2, nonnans], mixvec[nonnans], h->Kriging.expcov(h, 100, 250.), alpha=0.5, lowerlimit=0.05, upperlimit=upperlimit)
+		fig, ax, img = CrPlots.crplot(boundingbox, welllocations[1, nonnans], welllocations[2, nonnans], mixvec[nonnans], h->Kriging.expcov(h, 100, 250.), alpha=0.5, lowerlimit=lowerlimit[j], upperlimit=upperlimit)
 		CrPlots.addwells(ax, wellnames)
-		#CrPlots.addmeter(ax, boundingbox[1] + 50, boundingbox[2] - 100, [250, 500, 1000], ["250m", "500m", "1km"])
-		fig[:savefig]("figs/frame_$(species[j])_$(years[i]).png")
+		CrPlots.addcbar(fig, img, "Mixing", CrPlots.getticks(mixvec))
+		CrPlots.addmeter(ax, boundingbox[1] + 3500, boundingbox[2] + 10, [250, 500, 1000], ["250m", "500m", "1km"])
+		fig[:savefig]("figs/frame_$(sourcenames[j])_$(years[i]).png")
 		#display(fig)
 		PyPlot.close(fig)
 	end

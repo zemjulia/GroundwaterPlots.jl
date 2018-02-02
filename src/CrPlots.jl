@@ -32,7 +32,7 @@ const whitegreen = PyPlot.ColorMap("WG")
 
 """
 Interpolates the opacity of a colormap according to some function, where
-the functions are: (i) piecewise linear, (ii) Gaussian curve, and (iii) inverse Gaussian curve. 
+the functions are: (i) piecewise linear, (ii) Gaussian curve, and (iii) inverse Gaussian curve.
 
 $(DocumentFunction.documentfunction(cmap_alpha;
 argtext=Dict("cmap"=>"PyPlot colormap",
@@ -47,7 +47,7 @@ function cmap_alpha(cmap::PyPlot.ColorMap,center::Number,width::Number;method::S
 
 	alpha = Array{Float64}(N)
 
-	# Alpha will be 0 for x < b, 1 for x > c, 
+	# Alpha will be 0 for x < b, 1 for x > c,
 	# and linearly increasing from b to c.
 	function linear(x,b,c)
 		if (x < b)
@@ -108,14 +108,14 @@ function snap_labels(wells::Vector,offset_x::Number,offset_y::Number)
 		R = [cosd(θ) -sind(θ); sind(θ) cosd(θ)]
 		return R*[x;y]
 	end
-	
+
 	# Returns boolean true / false based on rectangles overlapping
 	function rect_overlap(x0::Number, y0::Number, x1::Number, y1::Number; w::Number=200, h::Number=50)
 		r0x = x0 + w # Rect 1, right-side X
 		r1x = x1 + w # Rect 2, right-side X
 		r0y = y0 + h # Rect 1, right-side Y
 		r1y = y1 + h # Rect 2, right-side Y
-	
+
 		if (x0 > r1x || x1 > r0x)
 			return false
 		elseif (y0 < r1y || y1 < r0y)
@@ -144,7 +144,7 @@ function snap_labels(wells::Vector,offset_x::Number,offset_y::Number)
 						if rect_overlap(x,y,x1,y1) == false
 							break
 						end
-					
+
 						v = rotate_vector(x,y,θ)
 						x = v[1]
 						y = v[2]
@@ -266,7 +266,7 @@ keytext=Dict("textoffsetx"=>"text off set on y axis [default=`20`]",
 			 "textoffsety"=>"text off set on y axis [default=`60`]",
 			"meterheight"=>"meter height [default=`40`]")))
 """
-function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsetx=30, textoffsety=30, meterheight=40)
+function addmeter(ax, meterx0, metery0, sizes, sizestrings; textoffsetx=30, textoffsety=60, meterheight=40)
 	colors = ["k", "white"]
 	colori = 1
 	for i in reverse(1:length(sizes))
