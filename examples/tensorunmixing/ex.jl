@@ -40,10 +40,11 @@ lowerlimit = [0.05, 0.2, 0, 0, 0.05, 0.07, 0]
 kscale = [250.,250.,1250.,1250.,250.,250.,1250.]
 for j = 1:size(W, 2)
 	#for i = 1:length(years)
-	for i = length(years):length(years)
+	mixvec = W[:, j, end]
+	upperlimit = maximum(filter(x->!isnan(x), mixvec[:]))
+	@show upperlimit, lowerlimit[j]
+	for i = 1:length(years)
 		mixvec = W[:, j, i]
-		upperlimit = maximum(filter(x->!isnan(x), mixvec[:]))
-		@show upperlimit, lowerlimit[j]
 		nonnans = map(x->!isnan(x), mixvec)
 		fig, ax, img = CrPlots.crplot(boundingbox, welllocations[1, nonnans], welllocations[2, nonnans], mixvec[nonnans], h->Kriging.expcov(h, 100, kscale[j]), alpha=0.5, lowerlimit=lowerlimit[j], upperlimit=upperlimit)
 		CrPlots.addwells(ax, wellnames)

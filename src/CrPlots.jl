@@ -486,19 +486,20 @@ function dogetwelllocation(well)
 	end
 end
 
-function getticks(plotdata::Vector; step::Number=5, sigdigits::Integer=1)
-	upperlimit = maximum(plotdata)
-	lowerlimit = minimum(plotdata)
-	ticks = getticks(lowerlimit, upperlimit; step=step, sigdigits=sigdigits)
+function getticks(plotdata::Vector; nstep::Number=5, sigdigits::Integer=1)
+	i = !isnan(plotdata)
+	upperlimit = maximum(plotdata[i])
+	lowerlimit = minimum(plotdata[i])
+	ticks = getticks(lowerlimit, upperlimit; nstep=nstep, sigdigits=sigdigits)
 	return ticks
 end
-function getticksold(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1)
-	ticks = map(x->round(x, sigdigits), linspace(lowerlimit, upperlimit, step))
+function getticksold(lowerlimit::Number, upperlimit::Number; nstep::Number=5, sigdigits::Integer=1)
+	ticks = map(x->round(x, sigdigits), linspace(lowerlimit, upperlimit, nstep))
 	return ticks
 end
-function getticks(lowerlimit::Number, upperlimit::Number; step::Number=5, sigdigits::Integer=1, quiet=true)
-	!quiet && @show upperlimit, lowerlimit
-	dx = (upperlimit-lowerlimit) / (step - 1)
+function getticks(lowerlimit::Number, upperlimit::Number; nstep::Number=5, sigdigits::Integer=1, quiet=true)
+	!quiet && @show upperlimit, lowerlimit, nstep
+	dx = (upperlimit-lowerlimit) / (nstep - 1)
 	fl = floor(log10(dx))
 	rbase = convert(Int64, ceil(10^fl/2))
 	if fl < 0
