@@ -36,19 +36,21 @@ if !isdir("figs")
 	mkdir("figs")
 end
 
-lowerlimit = [0.05, 0.2, 0, 0, 0.05, 0.07, 0]
+hardlowerlimit = [0.05, 0.2, 0, 0, 0.05, 0.07, 0]
 kscale = [250.,250.,1250.,1250.,250.,250.,1250.]
 for j = 1:size(W, 2)
 	#for i = 1:length(years)
-	mixvec = W[:, j, end]
-	upperlimit = maximum(filter(x->!isnan(x), mixvec[:]))
-	@show upperlimit, lowerlimit[j]
+	mixvec = W[:, j, :]
+	upperlimit = maximum(filter(x->!isnan(x), mixvec[:, :]))
+	lowerlimit = minimum(filter(x->!isnan(x), mixvec[:, :]))
+	@show upperlimit, lowerlimit, hardlowerlimit[j], max(lowerlimit, hardlowerlimit[j])
+	lowerlimit = max(lowerlimit, hardlowerlimit[j])
 	for i = 1:length(years)
 		mixvec = W[:, j, i]
 		nonnans = map(x->!isnan(x), mixvec)
-		fig, ax, img = CrPlots.crplot(boundingbox, welllocations[1, nonnans], welllocations[2, nonnans], mixvec[nonnans], h->Kriging.expcov(h, 100, kscale[j]), alpha=0.5, lowerlimit=lowerlimit[j], upperlimit=upperlimit)
+		fig, ax, img = CrPlots.crplot(boundingbox, welllocations[1, nonnans], welllocations[2, nonnans], mixvec[nonnans], h->Kriging.expcov(h, 100, kscale[j]), alpha=0.5, lowerlimit=lowerlimit, upperlimit=upperlimit)
 		CrPlots.addwells(ax, wellnames)
-		CrPlots.addcbar(fig, img, "Mixing", CrPlots.getticks(mixvec))
+		CrPlots.addcbar(fig, img, "Mixing", CrPlots.getticks([upperlimit, lowerlimit]))
 		CrPlots.addmeter(ax, boundingbox[1] + 3500, boundingbox[2] + 10, [250, 500, 1000], ["250m", "500m", "1km"])
 		fig[:savefig]("figs/Source_$(j)_$(years[i]).png")
 		#display(fig)
