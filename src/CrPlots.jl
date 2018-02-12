@@ -487,7 +487,7 @@ function dogetwelllocation(well)
 end
 
 function getticks(plotdata::Vector; nstep::Number=5, sigdigits::Integer=1)
-	i = !isnan(plotdata)
+	i = !isnan.(plotdata)
 	upperlimit = maximum(plotdata[i])
 	lowerlimit = minimum(plotdata[i])
 	ticks = getticks(lowerlimit, upperlimit; nstep=nstep, sigdigits=sigdigits)
