@@ -29,7 +29,6 @@ const redwhitegreen = PyPlot.ColorMap("RWG")
 const redwhite = PyPlot.ColorMap("RW")
 const whitegreen = PyPlot.ColorMap("WG")
 
-
 """
 Interpolates the opacity of a colormap according to some function, where
 the functions are: (i) piecewise linear, (ii) Gaussian curve, and (iii) inverse Gaussian curve.
@@ -90,77 +89,6 @@ end
 
 # DELETE THIS - for testing alpha
 const betabar = cmap_alpha(rainbow,0.188365,20)
-
-"""
-For all well labels that overlap another, rotate the label until it doesn't overlap.
-Currently *does not work*. Work in progress.
-
-$(DocumentFunction.documentfunction(snap_labels;
-argtext=Dict("wells"=>"Well names as string vector",
-			"offset_x"=>"X-offset of labels from well X",
-			"offset_y"=>"X-offset of labels from well X")))
-"""
-function snap_labels(wells::Vector,offset_x::Number,offset_y::Number)
-
-	# Rotates a point (x,y) by angle θ
-	function rotate_vector(x::Number, y::Number, θ::Number)
-		R = Array{Float64}(2,2)
-		R = [cosd(θ) -sind(θ); sind(θ) cosd(θ)]
-		return R*[x;y]
-	end
-
-	# Returns boolean true / false based on rectangles overlapping
-	function rect_overlap(x0::Number, y0::Number, x1::Number, y1::Number; w::Number=200, h::Number=50)
-		r0x = x0 + w # Rect 1, right-side X
-		r1x = x1 + w # Rect 2, right-side X
-		r0y = y0 + h # Rect 1, right-side Y
-		r1y = y1 + h # Rect 2, right-side Y
-
-		if (x0 > r1x || x1 > r0x)
-			return false
-		elseif (y0 < r1y || y1 < r0y)
-			return false
-		else
-			return true
-		end
-	end
-
-	well_pos = Dict() # Dictionary of 'new' label positions
-	θ = 5. # Degrees to rotate every loop
-	threshold = Int(round(360 / θ)) # Number of attempts to rotate before 'giving up'
-	repeat = 5 # Number of times to repeat function
-
-	# Repeat some number of times to find approx. equilibrium
-	for r=1:repeat
-		for w0 in wells
-			x,y = getwelllocation(w0)
-			i = 0
-			for w in wells
-
-				if w != w0
-					x1, y1 = getwelllocation(w)
-					# Repeat until (i) threshold or (ii) non-overlap
-					while true
-						if rect_overlap(x,y,x1,y1) == false
-							break
-						end
-
-						v = rotate_vector(x,y,θ)
-						x = v[1]
-						y = v[2]
-
-						i += 1
-						if i > threshold
-							break
-						end
-					end
-				end
-			end
-			well_pos[w0] = [x y]
-		end
-	end
-	return well_pos
-end
 
 """
 Add a colorbar to the plot.
@@ -343,21 +271,6 @@ function addwells_beta(ax, wellnames::Vector{String}; xoffset=5, yoffset=5, colo
 
 end
 
-function addwells(ax, wellnames::Vector; xoffset=5, yoffset=5, colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
-	for well in wellnames
-		well_x, well_y = getwelllocation(well)
-		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
-		ax[:text](well_x + xoffset, well_y + yoffset, well, fontsize=fontsize, weight="bold", alpha=alpha)
-	end
-end
-## addwells function that uses well dictionary for well location and well offset
-function addwells(ax, wellnames::Vector{String}, wells::Dict{String,Any}; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
-	for well in wellnames
-		ax[:plot](wells[well]["well_x"], wells[well]["well_y"], colorstring, markersize=markersize, alpha=alpha)
-		ax[:text](wells[well]["well_x"] + wells[well]["xoffset"], wells[well]["well_y"] + wells[well]["yoffset"], well, fontsize=fontsize, weight="bold", alpha=alpha)
-	end
-end
-
 @doc """
 Add well points and names to the plot.
 
@@ -369,6 +282,110 @@ keytext=Dict("colorstring"=>"string to define the color of the well points [defa
 			"fontsize"=>"font size of well names [default=`14`]",
 			"alpha"=>"[default=`1.0`]")))
 """ addwells
+
+function addwells(ax, wellnames::Vector; xoffset=5, yoffset=5, colorstring="k.", markersize=20, fontsize=14, alpha=1.0, smartoffset=false)
+	offset = [xoffset,yoffset]
+
+	for well in wellnames
+		well_x, well_y = getwelllocation(well)
+		offset = (smartoffset) ? getwelloffset(well,default=[xoffset,yoffset]) : [xoffset, yoffset]
+
+		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
+		ax[:text](well_x + offset[1], well_y + offset[2], well, fontsize=fontsize, weight="bold", alpha=alpha)
+	end
+end
+
+## addwells function that uses well dictionary for well location and well offset
+function addwells(ax, wellnames::Vector{String}, wells::Dict{String,Any}; colorstring="k.", markersize=20, fontsize=14, alpha=1.0)
+	for well in wellnames
+		ax[:plot](wells[well]["well_x"], wells[well]["well_y"], colorstring, markersize=markersize, alpha=alpha)
+		ax[:text](wells[well]["well_x"] + wells[well]["xoffset"], wells[well]["well_y"] + wells[well]["yoffset"], well, fontsize=fontsize, weight="bold", alpha=alpha)
+	end
+end
+
+"""
+Add observations and names to the axis.
+Observations are rendered as square, colored nodes.
+The 'observations' parameter containing observation names as
+keys, and each key having "x" and "y" fields.
+
+$(DocumentFunction.documentfunction(addobservations;
+argtext=Dict("ax"=>"axes of interest on the plot",
+			"observations"=>"observations dictionary"),
+keytext=Dict("fontsize"=>"size of observation name label font [default=`12`]",
+			"markersize"=>"observation marker size [default=`40`]",
+			"color"=>"marker color [default=`red`]",
+			"offsets"=>"either a dictionary, for granular control, or a tuple, for universal offsets")))
+"""
+
+function addobservations(ax,observations;text=true,fontsize=12,markersize=40,color="red",offsets = Dict("FID-0"=>[20,-25],"FID-1"=>[20,-15],"FID-2"=>[20,-10]))
+	vec_length = length(keys(observations))
+	xvec = Array{Float64,1}(vec_length)
+	yvec = Array{Float64,1}(vec_length)
+	tvec = Array{String,1}(vec_length)
+
+	# Fill the x, y, and label vectors
+	for (i,fid) in enumerate(keys(observations))
+		xvec[i] = observations[fid]["x"]
+		yvec[i] = observations[fid]["y"]
+		tvec[i] = fid
+	end
+
+	# Draw the observations to the canvas
+	ax[:scatter](xvec,yvec,color=color,marker="s",s=markersize)
+
+	# If chosen, draw the observation name
+	if text
+		for i=1:vec_length
+
+			# Configure offsets based on dictionary or tuple
+			if isa(offsets,Dict)
+				offset = (haskey(offsets,tvec[i])) ? offsets[tvec[i]] : [0,0]
+			else
+				offset = offsets
+			end
+
+			ax[:text](xvec[i]+offset[1],yvec[i]+offset[2],tvec[i],fontsize=fontsize, weight="bold")
+		end
+	end
+end
+
+"""
+Offset well labels according to a pre-defined dictionary,
+or a user-assigned dictionary.
+
+If wellnames are not present in the dictionary, they will be offset
+by a default value.
+
+Dictionary should be of type Dict{String,Array{Number,1}(2)}:
+	"WELLNAME" => [xoffset,yoffset]
+
+$(DocumentFunction.documentfunction(getwelloffset;
+argtext=Dict("wellname"=>"the name of the well"),
+keytext=Dict("offset_dict"=>"a dict{string,array(2)} containing granular offsets for well labels")))
+""" 
+
+function getwelloffset(wellname;offset_dict=nothing,default=[15,5])
+	dX = default[1]; dY = default[2]
+	set_up = []
+	set_down = [dX,-4*dY]
+	set_right = [2.2*dX,-1.8*dY]
+	set_left = []
+
+	# Use default dictionary if none was passed in
+	if offset_dict == nothing
+		offset_dict = Dict("R-35a"=>set_down,"CrIN-5"=>set_down,
+			"CrEX-3"=>set_right,"CrIN-2"=>set_down,"CrIN-4"=>set_down,"CrIN-3"=>set_down)
+	end
+
+	# Offset based on Dict, or use default?
+	if haskey(offset_dict,wellname)
+		offset = offset_dict[wellname]
+		return offset[1],offset[2]
+	else
+		return dX,dY
+	end
+end
 
 # Plot data using linear interpolation.
 function crplot(boundingbox, xs::Vector, ys::Vector, plotdata::Vector; upperlimit=false, lowerlimit=false, cmap=rainbow, figax=false, alpha=1.0)
