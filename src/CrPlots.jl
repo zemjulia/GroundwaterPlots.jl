@@ -283,12 +283,12 @@ keytext=Dict("colorstring"=>"string to define the color of the well points [defa
 			"alpha"=>"[default=`1.0`]")))
 """ addwells
 
-function addwells(ax, wellnames::Vector; xoffset=15, yoffset=15, colorstring="k.", markersize=20, fontsize=14, alpha=1.0, smartoffset=false)
-	offset = [xoffset,yoffset]
+function addwells(ax, wellnames::Vector; xoffset=15, yoffset=15, colorstring="k.", markersize=20, fontsize=14, alpha=1.0, smartoffset=true)
+	offset = [xoffset, yoffset]
 
 	for well in wellnames
 		well_x, well_y = getwelllocation(well)
-		offset = (smartoffset) ? getwelloffset(well,default=[xoffset,yoffset]) : [xoffset, yoffset]
+		offset = smartoffset ? getwelloffset(well, default=[xoffset, yoffset]) : [xoffset, yoffset]
 
 		ax[:plot](well_x, well_y, colorstring, markersize=markersize, alpha=alpha)
 		ax[:text](well_x + offset[1], well_y + offset[2], well, fontsize=fontsize, weight="bold", alpha=alpha)
@@ -363,7 +363,7 @@ Dictionary should be of type Dict{String,Array{Number,1}(2)}:
 $(DocumentFunction.documentfunction(getwelloffset;
 argtext=Dict("wellname"=>"the name of the well"),
 keytext=Dict("offset_dict"=>"a dict{string,array(2)} containing granular offsets for well labels")))
-""" 
+"""
 
 function getwelloffset(wellname;offset_dict=nothing,default=[15,15])
 	dX = default[1]; dY = default[2]
