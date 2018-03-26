@@ -318,7 +318,7 @@ keytext=Dict("fontsize"=>"size of observation name label font [default=`12`]",
 			"offsets"=>"either a dictionary, for granular control, or a tuple, for universal offsets")))
 """
 
-function addobservations(ax,observations;text=true,fontsize=12,markersize=40,color="red",offsets = Dict("FID-0"=>[20,-25],"FID-1"=>[20,-15],"FID-2"=>[20,-10]))
+function addobservations(ax,observations;text=true,fontsize=12,markersize=40,color="red",offsets = Dict("P-1"=>[20,-25],"P-2"=>[20,-15],"P-3"=>[20,-10]))
 	vec_length = length(keys(observations))
 	xvec = Array{Float64,1}(vec_length)
 	yvec = Array{Float64,1}(vec_length)
