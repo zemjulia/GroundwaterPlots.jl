@@ -167,11 +167,11 @@ function addcbar_horizontal(ax, cmap::PyPlot.ColorMap, title::String, x0::Number
 	# Check that all values within 'ticks' are Integer
 	cond = (sum(ticks - convert(Array{Int64},round.(ticks))) == 0. ? true : false)
 
-    cond = false
+	cond = false
 	# Draw tick lines and magnitude
 	for (i,tick) in enumerate(ticks)
-        x = x0 + ((i-1)*width/(length(ticks)-1))
-        t = PyPlot.matplotlib[:patches][:Rectangle]((x, y0 - tick_h), tick_w, tick_h, facecolor=(0.,0.,0.), edgecolor="none")
+		x = x0 + ((i-1)*width/(length(ticks)-1))
+		t = PyPlot.matplotlib[:patches][:Rectangle]((x, y0 - tick_h), tick_w, tick_h, facecolor=(0.,0.,0.), edgecolor="none")
 		ax[:add_patch](t)
 
 		tick_s = (cond == true ? string(Int(tick)) : string(tick)) # 'float' to string or 'int' to string?
@@ -369,22 +369,22 @@ keytext=Dict("offset_dict"=>"a dict{string,array(2)} containing granular offsets
 function getwelloffset(wellname;offset_dict=nothing,default=[15,15])
 	dX = default[1]; dY = default[2]
 
-    set_north = [-8*dX,2.0*dY]
-    set_northeast = []
-    set_east = [2.2*dX,-1.8*dY]
-    set_southeast = [dX,-4*dY]
-    set_south = [-8*dX,-5*dY]
-    set_southwest = []
-    set_west = [-dX*16,-1.8*dY]
-    set_northwest = []
+	set_north = [-8*dX,2.0*dY]
+	set_northeast = []
+	set_east = [2.2*dX,-1.8*dY]
+	set_southeast = [dX,-4*dY]
+	set_south = [-8*dX,-5*dY]
+	set_southwest = []
+	set_west = [-dX*16,-1.8*dY]
+	set_northwest = []
 
 	# Use default dictionary if none was passed in
 	if offset_dict == nothing
 		offset_dict = Dict("R-35a"=>set_southeast,"CrIN-5"=>set_west,
 			"CrEX-3"=>set_southeast,"CrIN-2"=>set_down,"CrIN-4"=>set_southeast,
-            "R-15"=>[4*dX,0]+set_west,"CrPZ-1"=>set_west,"CrPZ-5"=>set_east,"CrEX-4"=>set_north,
-            "R-44"=>set_east,"R-28"=>set_east,"CrEX-2"=>set_east,"CrPZ-4"=>set_north,
-            "R-42"=>set_east,"PM-02"=>set_east)
+			"R-15"=>[4*dX,0]+set_west,"CrPZ-1"=>set_west,"CrPZ-5"=>set_east,"CrEX-4"=>set_north,
+			"R-44"=>set_east,"R-28"=>set_east,"CrEX-2"=>set_east,"CrPZ-4"=>set_north,
+			"R-42"=>set_east,"PM-02"=>set_east)
 	end
 
 	# Offset based on Dict, or use default?
