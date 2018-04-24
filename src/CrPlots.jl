@@ -167,10 +167,11 @@ function addcbar_horizontal(ax, cmap::PyPlot.ColorMap, title::String, x0::Number
 	# Check that all values within 'ticks' are Integer
 	cond = (sum(ticks - convert(Array{Int64},round.(ticks))) == 0. ? true : false)
 
+    cond = false
 	# Draw tick lines and magnitude
-	for tick in ticks
-		x = (width / (max-min)) * tick + x0 # Set tick pos. relative to cbar width
-		t = PyPlot.matplotlib[:patches][:Rectangle]((x, y0 - tick_h), tick_w, tick_h, facecolor=(0.,0.,0.), edgecolor="none")
+	for (i,tick) in enumerate(ticks)
+        x = x0 + ((i-1)*width/(length(ticks)-1))
+        t = PyPlot.matplotlib[:patches][:Rectangle]((x, y0 - tick_h), tick_w, tick_h, facecolor=(0.,0.,0.), edgecolor="none")
 		ax[:add_patch](t)
 
 		tick_s = (cond == true ? string(Int(tick)) : string(tick)) # 'float' to string or 'int' to string?
@@ -226,7 +227,7 @@ function addpbar(fig, ax, completeness, text; pbar_x0 = 0.15, pbar_y0 = 0.05, pb
 	fgrect = PyPlot.matplotlib[:patches][:Rectangle]((0, 0), completeness, 1, facecolor="k", edgecolor="none", alpha=0.7)
 	pbar_ax[:add_patch](bgrect)
 	pbar_ax[:add_patch](fgrect)
-	pbar_ax[:text](0, -1, text, fontsize=fontsize, weight="bold")
+	pbar_ax[:text](0, -1.3, text, fontsize=fontsize, weight="bold")
 end
 
 """
@@ -367,15 +368,23 @@ keytext=Dict("offset_dict"=>"a dict{string,array(2)} containing granular offsets
 
 function getwelloffset(wellname;offset_dict=nothing,default=[15,15])
 	dX = default[1]; dY = default[2]
-	set_up = []
-	set_down = [dX,-4*dY]
-	set_right = [2.2*dX,-1.8*dY]
-	set_left = []
+
+    set_north = [-8*dX,2.0*dY]
+    set_northeast = []
+    set_east = [2.2*dX,-1.8*dY]
+    set_southeast = [dX,-4*dY]
+    set_south = [-8*dX,-5*dY]
+    set_southwest = []
+    set_west = [-dX*16,-1.8*dY]
+    set_northwest = []
 
 	# Use default dictionary if none was passed in
 	if offset_dict == nothing
-		offset_dict = Dict("R-35a"=>set_down,"CrIN-5"=>set_down,
-			"CrEX-3"=>set_right,"CrIN-2"=>set_down,"CrIN-4"=>set_down,"CrIN-3"=>set_down)
+		offset_dict = Dict("R-35a"=>set_southeast,"CrIN-5"=>set_west,
+			"CrEX-3"=>set_southeast,"CrIN-2"=>set_down,"CrIN-4"=>set_southeast,
+            "R-15"=>[4*dX,0]+set_west,"CrPZ-1"=>set_west,"CrPZ-5"=>set_east,"CrEX-4"=>set_north,
+            "R-44"=>set_east,"R-28"=>set_east,"CrEX-2"=>set_east,"CrPZ-4"=>set_north,
+            "R-42"=>set_east,"PM-02"=>set_east)
 	end
 
 	# Offset based on Dict, or use default?
