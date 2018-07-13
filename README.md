@@ -5,6 +5,10 @@ CrPlots.jl is a [ZEM](https://gitlab.com/zem) module.
 
 All modules under ZEM are open-source released under GNU GENERAL PUBLIC LICENSE Version 3.
 
+Copyright 2018. Los Alamos National Laboratory. Los Alamos National Security, LLC. All rights reserved.
+
+LANL Copyright Reference Number: C17004
+
 The modeule can be applied to create an empty plot with the background image without data; or plot data using linear interpolation, kriging, or inverse weighted distance; or plot matrix data. The following plot is generated using this module:
 
 <img src="CrPlots_plot.png" width="500">
