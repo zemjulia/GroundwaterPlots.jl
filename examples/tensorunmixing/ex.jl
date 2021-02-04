@@ -1,4 +1,4 @@
-import CrPlots
+import GroundwaterPlots
 import JLD
 
 fullwellnames = ["R-67", "R-14#1", "R-01", "R-15", "R-62", "R-43#1", "R-43#2", "R-42", "R-28", "R-50#1", "R-11", "R-45#1", "R-45#2", "R-44#1", "SIMR-2", "R-13", "R-35a", "R-35b", "R-36"]
@@ -23,7 +23,7 @@ W = W[goodwells, :, :]
 
 welllocations = Array{Float64}(2, length(wellnames))
 for (i, wellname) in enumerate(wellnames)
-	x, y = CrPlots.getwelllocation(wellname)
+	x, y = GroundwaterPlots.getwelllocation(wellname)
 	welllocations[1, i] = x
 	welllocations[2, i] = y
 end
@@ -48,10 +48,10 @@ for j = 1:size(W, 2)
 	for i = 1:length(years)
 		mixvec = W[:, j, i]
 		nonnans = map(x->!isnan(x), mixvec)
-		fig, ax, img = CrPlots.crplot(boundingbox, welllocations[1, nonnans], welllocations[2, nonnans], mixvec[nonnans], h->Kriging.expcov(h, 100, kscale[j]), alpha=0.5, lowerlimit=lowerlimit, upperlimit=upperlimit)
-		CrPlots.addwells(ax, wellnames)
-		CrPlots.addcbar(fig, img, "Mixing", CrPlots.getticks([upperlimit, lowerlimit]))
-		CrPlots.addmeter(ax, boundingbox[1] + 3500, boundingbox[2] + 10, [250, 500, 1000], ["250m", "500m", "1km"])
+		fig, ax, img = GroundwaterPlots.contaminationplot(boundingbox, welllocations[1, nonnans], welllocations[2, nonnans], mixvec[nonnans], h->Kriging.expcov(h, 100, kscale[j]), alpha=0.5, lowerlimit=lowerlimit, upperlimit=upperlimit)
+		GroundwaterPlots.addwells(ax, wellnames)
+		GroundwaterPlots.addcbar(fig, img, "Mixing", GroundwaterPlots.getticks([upperlimit, lowerlimit]))
+		GroundwaterPlots.addmeter(ax, boundingbox[1] + 3500, boundingbox[2] + 10, [250, 500, 1000], ["250m", "500m", "1km"])
 		fig[:savefig]("figs/Source_$(j)_$(years[i]).png")
 		#display(fig)
 		PyPlot.close(fig)

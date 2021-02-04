@@ -1,8 +1,8 @@
-import CrPlots
+import GroundwaterPlots
 
-const reds = PyPlot.matplotlib[:cm][:Reds]
-const greens = PyPlot.matplotlib[:cm][:Greens]
-const blues = PyPlot.matplotlib[:cm][:Blues]
+const reds = PyPlot.matplotlib.cm.Reds
+const greens = PyPlot.matplotlib.cm.Greens
+const blues = PyPlot.matplotlib.cm.Blues
 
 colors = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 colornames = ["red", "green", "blue"]
@@ -13,12 +13,12 @@ for i = 1:length(colors)
 		cdict[colorname] = [(0.0, colors[i][j], colors[i][j]), (1.0, colors[i][j], colors[i][j])]
 	end
 	cdict["alpha"] = [(0.0, 0.0, 0.0), (1.0, 1.0, 1.0)]
-	push!(cmaps, PyPlot.matplotlib[:colors][:LinearSegmentedColormap](colornames[i], cdict, 1024))
+	push!(cmaps, PyPlot.matplotlib.colors.LinearSegmentedColormap(colornames[i], cdict, 1024))
 end
 
-
-rawdata = ["R-14_1"  0.549646   0.23239    0.188371   0.0137258  0.0131851  0.00268259
-"R-01"     0.461409   0.231506   0.270278   0.0140427  0.0201273  0.00263599
+rawdata = [
+"R-14_1"  0.549646   0.23239    0.188371   0.0137258  0.0131851  0.00268259
+"R-01"    0.461409   0.231506   0.270278   0.0140427  0.0201273  0.00263599
 "R-33_1"  0.372545   0.221422   0.339206   0.0322901  0.0321535  0.00238291
 "R-15"    0.273016   0.261297   0.225814   0.160993   0.0728103  0.00606946
 "R-62"    0.38614    0.266115   0.197858   0.0269818  0.0211447  0.10176
@@ -32,14 +32,14 @@ rawdata = ["R-14_1"  0.549646   0.23239    0.188371   0.0137258  0.0131851  0.00
 "R-45_1"  0.22453    0.432779   0.109372   0.177142   0.0427082  0.0134693
 "SIMR-2"  0.413077   0.28387    0.22911    0.045539   0.0263668  0.00203712]
 
-wellnames = map(wellname->split(wellname, "_")[1], rawdata[:, 1])
+wellnames = map(wellname -> split(wellname, "_")[1], rawdata[:, 1])
 welllocations = Array{Float64}(2, length(wellnames))
 for (i, wellname) in enumerate(wellnames)
-	x, y = CrPlots.getwelllocation(wellname)
+	x, y = GroundwaterPlots.getwelllocation(wellname)
 	welllocations[1, i] = x
 	welllocations[2, i] = y
 end
-mixmat = convert(Array{Float64, 2}, rawdata[:, 2:end])
+mixmat = convert(Array{Float64,2}, rawdata[:, 2:end])
 
 xs = welllocations[1, :]
 ys = welllocations[2, :]
@@ -49,13 +49,13 @@ threshold = 0.2
 for i = 1:6
 	for j = 1:i - 1
 		for k = 1:j - 1
-			fig, ax, img = CrPlots.crplot(boundingbox, welllocations[1, :], welllocations[2, :], mixmat[:, i], h->Kriging.expcov(h, 100, 250.); cmap=cmaps[1], pretransform=x->min(x, maxval), posttransform=x->x > threshold ? x : NaN)
-			CrPlots.crplot(boundingbox, welllocations[1, :], welllocations[2, :], mixmat[:, j], h->Kriging.expcov(h, 100, 250.); cmap=cmaps[2], figax=(fig, ax), pretransform=x->min(x, maxval), posttransform=x->x > threshold ? x : NaN)
-			CrPlots.crplot(boundingbox, welllocations[1, :], welllocations[2, :], mixmat[:, k], h->Kriging.expcov(h, 100, 250.); cmap=cmaps[3], figax=(fig, ax), pretransform=x->min(x, maxval), posttransform=x->x > threshold ? x : NaN)
-			CrPlots.addwells(ax, wellnames)
-			CrPlots.addmeter(ax, boundingbox[1] + 50, boundingbox[2] - 100, [250, 500, 1000], ["250m", "500m", "1km"])
+			fig, ax, img = GroundwaterPlots.contaminationplot(boundingbox, welllocations[1, :], welllocations[2, :], mixmat[:, i], h -> Kriging.expcov(h, 100, 250.); cmap=cmaps[1], pretransform=x -> min(x, maxval), posttransform=x -> x > threshold ? x : NaN)
+			GroundwaterPlots.contaminationplot(boundingbox, welllocations[1, :], welllocations[2, :], mixmat[:, j], h -> Kriging.expcov(h, 100, 250.); cmap=cmaps[2], figax=(fig, ax), pretransform=x -> min(x, maxval), posttransform=x -> x > threshold ? x : NaN)
+			GroundwaterPlots.contaminationplot(boundingbox, welllocations[1, :], welllocations[2, :], mixmat[:, k], h -> Kriging.expcov(h, 100, 250.); cmap=cmaps[3], figax=(fig, ax), pretransform=x -> min(x, maxval), posttransform=x -> x > threshold ? x : NaN)
+			GroundwaterPlots.addwells(ax, wellnames)
+			GroundwaterPlots.addmeter(ax, boundingbox[1] + 50, boundingbox[2] - 100, [250, 500, 1000], ["250m", "500m", "1km"])
 			fig[:savefig]("fig_$i$j$k.png")
-			#display(fig)
+			# display(fig)
 			PyPlot.close(fig)
 		end
 	end
