@@ -1,5 +1,7 @@
 import GroundwaterPlots
 import DelimitedFiles
+import Kriging
+import PyPlot
 
 data = DelimitedFiles.readdlm(joinpath(dirname(pathof(GroundwaterPlots)), "..", "examples", "kriging", "hycos.dlm"))
 wells = data[:, 1]
@@ -17,7 +19,7 @@ display(fig)
 println()
 PyPlot.close(fig)
 
-#plot it with kriging
+# Plot with kriging
 fig, ax, img = GroundwaterPlots.interpolationplot(boundingbox, xs, ys, hycos, h->Kriging.expcov(h, 100, 250.); alpha=0.5)
 GroundwaterPlots.addwells(ax, wells)
 GroundwaterPlots.addcbar(fig, img, "Hyd. con. (m/d)", GroundwaterPlots.getticks(hycos))
