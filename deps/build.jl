@@ -25,7 +25,7 @@ catch errmsg
 	end
 
 	try
-		@info("Installing Python YAML & MatPlotLib using pip ...")
+		@info("Installing SciPy & MatPlotLib using pip ...")
 		Core.eval(Main, :(PyCall.pyimport("pip")))
 		global proxy_args = String[]
 		if haskey(ENV, "http_proxy")
@@ -37,7 +37,7 @@ catch errmsg
 		run(`$(PyCall.python) $(proxy_args) -m pip install --user $(PACKAGES)`)
 	catch errmsg
 		println(errmsg)
-		@warn("Installing Python YAML & MatPlotLib using pip fails!")
+		@warn("Installing SciPy & MatPlotLib using pip fails!")
 	end
 
 	try
@@ -48,7 +48,7 @@ catch errmsg
 		@warn("Python SciPy installation using pip has failed!")
 		@info("Using Conda instead ...")
 		import Conda
-		Conda.add("pyyaml")
+		Conda.add("scipy")
 	end
 
 	try
