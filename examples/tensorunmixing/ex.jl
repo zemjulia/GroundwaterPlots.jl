@@ -15,7 +15,7 @@ function isgoodwell(x)
 end
 goodwells = map(isgoodwell, fullwellnames)
 sourcenames = map(i->"S$i", 1:7)
-years = Int.(linspace(2005, 2016, 12))
+years = Int.(range(2005, 2016; length=12))
 W = JLD.load("cr-20170911-w01-s20-y1-noscale-7-1000.jld", "W")
 
 wellnames = wellnames[goodwells]
