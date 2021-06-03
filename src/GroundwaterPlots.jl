@@ -163,7 +163,7 @@ argtext=Dict("ax"=>"PyPlot axis",
 keytext=Dict("width"=>"colorbar width",
 			"height"=>"colorbar height")))
 """
-function addcbar_horizontal(ax, cmap::PyPlot.ColorMap, title::String, x0::Number, y0::Number, ticks::AbstractVector, min::Number, max::Number; width::Number=1000, height::Number=40)
+function addcbar_horizontal(ax, cmap::PyPlot.ColorMap, title::AbstractString, x0::Number, y0::Number, ticks::AbstractVector, min::Number, max::Number; width::Number=1000, height::Number=40)
 	N = cmap.N # Number of discrete color values in colormap
 	bin = width / N # Width of each color rectangle to be drawn
 	tick_h = height / 2 # Tick height
